@@ -6,7 +6,6 @@ public class Game {
     private MainWindow window;
 
     private int boardSize = 10;
-
     private int round = 0;
     private int player = 0;
 
@@ -15,6 +14,10 @@ public class Game {
 
     private Point2D[] player1Hits;
     private Point2D[] player2Hits;
+
+    public int getBoardSize() {
+        return boardSize;
+    }
 
     public Game(MainWindow window)
     {
