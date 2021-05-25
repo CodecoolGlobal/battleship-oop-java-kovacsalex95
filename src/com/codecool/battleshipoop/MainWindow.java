@@ -10,16 +10,20 @@ public class MainWindow {
     private JButton creditsButton;
     private JButton exitGameButton;
     private JPanel panelBoardContainer;
-    private JPanel panelBoard1;
-    private JPanel panelBoard2;
     private JToolBar toolbarFunctions;
 
     public static void main(String args[])
     {
+        MainWindow window = new MainWindow();
+
         JFrame frame = new JFrame("Battleship Hokkaido");
-        frame.setContentPane(new MainWindow().panelMain);
+        frame.setContentPane(window.panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(800, 500));
+
+        FieldPanel panel1 = new FieldPanel();
+        window.panelBoardContainer.add(panel1);
+
         frame.pack();
         frame.setVisible(true);
     }

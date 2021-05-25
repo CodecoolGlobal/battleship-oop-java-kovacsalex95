@@ -8,8 +8,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="58bd3" binding="panelBoardContainer" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="0" vgap="0">
-        <margin top="0" left="0" bottom="0" right="0"/>
+      <grid id="58bd3" binding="panelBoardContainer" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
             <minimum-size width="600" height="300"/>
@@ -19,40 +18,7 @@
         </constraints>
         <properties/>
         <border type="none"/>
-        <children>
-          <grid id="b28e7" binding="panelBoard1" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="0" vgap="0">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <minimum-size width="300" height="300"/>
-                <preferred-size width="300" height="300"/>
-                <maximum-size width="300" height="300"/>
-              </grid>
-            </constraints>
-            <properties>
-              <background color="-12511724"/>
-              <enabled value="false"/>
-            </properties>
-            <border type="none"/>
-            <children/>
-          </grid>
-          <grid id="1920f" binding="panelBoard2" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="0" vgap="0">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true">
-                <minimum-size width="300" height="300"/>
-                <preferred-size width="300" height="300"/>
-                <maximum-size width="300" height="300"/>
-              </grid>
-            </constraints>
-            <properties>
-              <background color="-15721919"/>
-              <enabled value="false"/>
-            </properties>
-            <border type="none"/>
-            <children/>
-          </grid>
-        </children>
+        <children/>
       </grid>
       <toolbar id="c4d12" binding="toolbarFunctions">
         <constraints>
