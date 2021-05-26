@@ -33,6 +33,8 @@ public class Util {
 
     public static Ship[] removeShip(Ship[] collection)
     {
+        if (collection.length == 0) return collection;
+
         Ship[] result = new Ship[collection.length - 1];
         for (int i=0; i < result.length; i++)
             result[i] = collection[i];
