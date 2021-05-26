@@ -194,16 +194,11 @@ public class FieldPanel extends JPanel {
 
         drawGrid(g, boardRectangle);
 
+        // DEBUG SHIPS (removable)
         drawShipPart(g, boardRectangle, new Point2D.Double(0, 0), ShipPart.Front);
         drawShipPart(g, boardRectangle, new Point2D.Double(1, 0), ShipPart.Middle);
         drawShipPart(g, boardRectangle, new Point2D.Double(2, 0), ShipPart.Rear);
         drawShipPart(g, boardRectangle, new Point2D.Double(3, 3), ShipPart.Small);
-
-        // DEBUG
-        if (false && mouseInBoard()) {
-            g.setPaint(Color.GREEN);
-            g.drawRect((int) mouseEvents.mousePosition.getX() - 3, (int) mouseEvents.mousePosition.getY() - 3, 6, 6);
-        }
     }
 
     private void drawBoardHighlight(Graphics2D g, Rectangle2D boardRectangle, Point2D highlightPosition, Color color)
