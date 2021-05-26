@@ -18,14 +18,20 @@ class ShipPiece {
         this.part = part;
         this.position = new Point2D.Double(x, y);
         this.hit = hit;
+        this.explosionAngleOffset = Util.random(0, 360);
+        this.explosionAngleSpeed = Util.random(-2, 2);
     }
     public ShipPiece(Point2D position, boolean hit, ShipPart part) {
         this.part = part;
         this.position = position;
         this.hit = hit;
+        this.explosionAngleOffset = Util.random(0, 360);
+        this.explosionAngleSpeed = Util.random(-2, 2);
     }
 
     public ShipPart part;
+    public float explosionAngleOffset;
+    public float explosionAngleSpeed;
 }
 
 public class Ship {
