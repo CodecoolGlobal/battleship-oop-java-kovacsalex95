@@ -24,6 +24,8 @@ public class FieldPanel extends JPanel {
     private ImageIcon shipRear;
     private ImageIcon shipSmall;
 
+    public boolean madness = false;
+    public float madnessAmount = 0;
 
     private final float padding = 30;
 
@@ -110,8 +112,17 @@ public class FieldPanel extends JPanel {
 
     private void Frame(Graphics2D g) {
 
-        // TODO: írjuk ki hogy "press new game to start"
-        if (game.gameState == GameState.NOT_STARTED) return;
+        // Madness = Rotate boards
+        if (madness) {
+            madnessAmount += 5;
+            if (madnessAmount > 360)
+                madnessAmount -= 360;
+        }
+
+        if (game.gameState == GameState.NOT_STARTED) {
+            g.drawString("Press NEW GAME to START", this.getWidth() / 2 - 110, this.getHeight() / 2);
+            return;
+        }
 
         // Egér kezelése
         if (!firstFrame)
@@ -159,6 +170,10 @@ public class FieldPanel extends JPanel {
         g.setPaint(Color.getHSBColor(0, 0, 0.2f));
         g.fill(backRectangle);
 
+        // Rotate boards
+        AffineTransform backup = g.getTransform();
+        if (madness) Util.rotateGraphics(g, madnessAmount, (float)panelSize.width / 2, (float)panelSize.height / 2);
+
 
         // Boards
         Rectangle2D workingArea = new Rectangle2D.Double(0, padding, panelSize.width, panelSize.height - padding);
@@ -177,6 +192,8 @@ public class FieldPanel extends JPanel {
 
         Rectangle2D boardsRectangle = new Rectangle2D.Double(workingArea.getX() + (workingArea.getWidth() - boardsWidth) / 2, workingArea.getY() + (workingArea.getHeight() - boardsHeight) / 2, boardsWidth, boardsHeight);
         drawBoards(g, boardsRectangle);
+
+        g.setTransform(backup);
     }
 
 
@@ -205,10 +222,16 @@ public class FieldPanel extends JPanel {
         g.setPaint(oceanColor);
         g.fill(boardRectangle[boardIndex]);
 
+        boolean placementPreviewActive = game.gameState == GameState.PLACEMENT && boardIndex == game.player && game.shipPlacementPoint != null;
         // Rács
         if ((game.gameState == GameState.PLACEMENT && boardIndex == game.player) || (game.gameState == GameState.ATTACK && boardIndex != game.player)) {
-            drawBoardHighlight(g, boardIndex);
+            if (!placementPreviewActive)
+                drawBoardHighlight(g, boardIndex);
             drawGrid(g, boardIndex);
+        }
+
+        if (placementPreviewActive) {
+            drawPlacementPreview(g, boardIndex);
         }
 
         // Hajók
@@ -223,15 +246,32 @@ public class FieldPanel extends JPanel {
     }
 
 
+    private void drawPlacementPreview(Graphics2D g, int boardIndex) {
+        int shipSize = game.SHIP_COUNT;
+        if (game.playerShips != null && game.playerShips[boardIndex] != null) {
+            shipSize = game.SHIP_COUNT - game.playerShips[boardIndex].length;
+        }
+
+        Util.cellHighlight(g, game.shipPlacementPoint, Util.fade(playerColor[boardIndex], 0.4f), boardRectangle[boardIndex], cellSize);
+
+        if (boardHighlight == null || boardHighlight[boardIndex] == null) return;
+
+        Point2D direction = Util.pointDirection(game.shipPlacementPoint, boardHighlight[boardIndex]);
+
+        if (direction == null) return;
+
+        for (int i = 0; i < shipSize; i++) {
+            Point2D highlightCell = new Point2D.Double(game.shipPlacementPoint.getX() + i * direction.getX(), game.shipPlacementPoint.getY() + i * direction.getY());
+            Util.cellHighlight(g, highlightCell, Util.fade(playerColor[boardIndex], 0.4f), boardRectangle[boardIndex], cellSize);
+        }
+    }
+
     private void drawBoardHighlight(Graphics2D g, int boardIndex) {
 
         if (boardHighlight == null || boardHighlight[boardIndex] == null)
             return;
 
-        Rectangle2D highlightRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + boardHighlight[boardIndex].getX() * cellSize, boardRectangle[boardIndex].getY() + boardHighlight[boardIndex].getY() * cellSize, cellSize, cellSize);
-
-        g.setPaint(Util.fade(playerColor[boardIndex], 0.65f));
-        g.fill(highlightRectangle);
+        Util.cellHighlight(g, boardHighlight[boardIndex], Util.fade(playerColor[boardIndex], 0.65f), boardRectangle[boardIndex], cellSize);
     }
 
 
@@ -239,7 +279,7 @@ public class FieldPanel extends JPanel {
 
         g.setPaint(Color.BLACK);
 
-        for (int i = 1; i < cellSize; i++) {
+        for (int i = 1; i < game.boardSize; i++) {
             Line2D horizontal = new Line2D.Double(boardRectangle[boardIndex].getX(), boardRectangle[boardIndex].getY() + i * cellSize, boardRectangle[boardIndex].getX() + boardRectangle[boardIndex].getWidth(), boardRectangle[boardIndex].getY() + i * cellSize);
             g.draw(horizontal);
 
