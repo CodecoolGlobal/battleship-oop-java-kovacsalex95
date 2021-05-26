@@ -27,8 +27,9 @@ public class MainWindow {
         frame.setMinimumSize(new Dimension(800, 500));
 
         window.fieldDrawer = new FieldPanel();
-        window.fieldDrawer.Init(window.game);
+        window.fieldDrawer.init(window.game);
         window.panelBoardContainer.add(window.fieldDrawer);
+        //window.fieldDrawer.set
 
         frame.pack();
         frame.setVisible(true);
