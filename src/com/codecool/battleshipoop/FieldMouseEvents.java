@@ -24,7 +24,7 @@ class FieldMouseEvents implements MouseListener, MouseMotionListener {
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == 1)
             mouseLeftClick = true;
-        if (e.getButton() == 2)
+        if (e.getButton() == 3)
             mouseRightClick = true;
     }
 
@@ -34,7 +34,7 @@ class FieldMouseEvents implements MouseListener, MouseMotionListener {
 
         if (e.getButton() == 1)
             mouseLeftDown = true;
-        if (e.getButton() == 2)
+        if (e.getButton() == 3)
             mouseRightDown = true;
     }
 
@@ -42,9 +42,9 @@ class FieldMouseEvents implements MouseListener, MouseMotionListener {
     public void mouseReleased(MouseEvent e) {
         // EGÉR GOMB FEL
 
-        if (e.getButton() == 0)
-            mouseLeftDown = false;
         if (e.getButton() == 1)
+            mouseLeftDown = false;
+        if (e.getButton() == 3)
             mouseRightDown = false;
     }
 
