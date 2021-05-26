@@ -15,7 +15,7 @@ public class FieldPanel extends JPanel {
     private Game game = null;
     private Timer clock;
 
-    private FieldMouseEvents mouseEvents;
+    public FieldMouseEvents mouseEvents;
 
     private Rectangle2D boardRectangle1;
     private Rectangle2D boardRectangle2;
@@ -24,6 +24,10 @@ public class FieldPanel extends JPanel {
 
     public Point2D board1Highlight = null;
     public Point2D board2Highlight = null;
+
+    public Point2D getBoardHighlight(int player) {
+        return player == 0 ? board1Highlight : board2Highlight;
+    }
 
     private boolean firstFrame = true;
 
@@ -102,6 +106,8 @@ public class FieldPanel extends JPanel {
     public void paintComponent(Graphics originalGraphics) {
 
         super.paintComponent(originalGraphics);
+        if (game.getGameState() == GameState.NOT_STARTED) return;
+
 
         if (!firstFrame)
             handleMouseEvents();
@@ -110,6 +116,7 @@ public class FieldPanel extends JPanel {
 
         firstFrame = false;
 
+        game.Update();
         mouseEvents.reset();
     }
 
@@ -195,10 +202,15 @@ public class FieldPanel extends JPanel {
         drawGrid(g, boardRectangle);
 
         // DEBUG SHIPS (removable)
-        drawShipPart(g, boardRectangle, new Point2D.Double(0, 0), ShipPart.Front);
-        drawShipPart(g, boardRectangle, new Point2D.Double(1, 0), ShipPart.Middle);
-        drawShipPart(g, boardRectangle, new Point2D.Double(2, 0), ShipPart.Rear);
-        drawShipPart(g, boardRectangle, new Point2D.Double(3, 3), ShipPart.Small);
+//        drawShipPart(g, boardRectangle, new Point2D.Double(0, 0), ShipPart.Front, 0);
+//        drawShipPart(g, boardRectangle, new Point2D.Double(1, 0), ShipPart.Middle, 0);
+//        drawShipPart(g, boardRectangle, new Point2D.Double(2, 0), ShipPart.Rear,0 );
+//        drawShipPart(g, boardRectangle, new Point2D.Double(3, 3), ShipPart.Small, 0);
+        if (game.playerShips == null || game.playerShips[boardIndex] == null) return;
+
+        for (int i = 0; i < game.playerShips[boardIndex].length; i++) {
+            drawShip(g, boardRectangle, game.playerShips[boardIndex][i]);
+        }
     }
 
     private void drawBoardHighlight(Graphics2D g, Rectangle2D boardRectangle, Point2D highlightPosition, Color color)
@@ -228,15 +240,23 @@ public class FieldPanel extends JPanel {
         }
     }
 
-    private void drawShipPart(Graphics2D g, Rectangle2D boardRectangle, Point2D cell, ShipPart part)
+    private void drawShipPart(Graphics2D g, Rectangle2D boardRectangle, Point2D cell, ShipPart part, float angle)
     {
         Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle.getX() + cellSize * cell.getX(), boardRectangle.getY() + cellSize * cell.getY(), cellSize, cellSize);
         Image partIcon = shipPartIcon(part).getImage();
 
 
-        AffineTransform backup = Util.rotateGraphics(g, 0, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
+        AffineTransform backup = Util.rotateGraphics(g, angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
         g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
         g.setTransform(backup);
+    }
+
+    private void drawShip(Graphics2D g, Rectangle2D boardRectangle, Ship ship) {
+        ShipPiece[] shipPieces = ship.getShipPieces();
+        for (int i = 0; i < shipPieces.length; i++) {
+            ShipPiece shipPiece = shipPieces[i];
+            drawShipPart(g, boardRectangle, shipPiece.position, shipPiece.part, ship.getAngle());
+        }
     }
 
 }
