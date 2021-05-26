@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.sql.Timestamp;
+import java.util.Random;
 
 public class Util {
     public static Color fade(Color original, float alpha)
@@ -81,6 +83,22 @@ public class Util {
             return 90;
 
         return 270;
+    }
+
+    public static int random(int from, int to)
+    {
+        Random r = new Random();
+        int low = Math.min(from, to);
+        int high = Math.max(from, to);
+        return r.nextInt(high-low) + low;
+    }
+
+    public static int elapsedMiliseconds(Timestamp currentTime, Timestamp oldTime)
+    {
+        long milliseconds1 = oldTime.getTime();
+        long milliseconds2 = currentTime.getTime();
+
+        return Math.round(milliseconds2 - milliseconds1);
     }
 
 }
