@@ -235,7 +235,7 @@ public class FieldPanel extends JPanel {
 
 
         AffineTransform backup = Util.rotateGraphics(g, 0, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
-        g.drawImage(partIcon, (int)partRectangle.getX(), (int)partRectangle.getY(), (int)partRectangle.getWidth(), (int)partRectangle.getHeight(), null);
+        g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
         g.setTransform(backup);
     }
 
