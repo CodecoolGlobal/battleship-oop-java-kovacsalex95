@@ -1,6 +1,15 @@
 package com.codecool.battleshipoop;
 
+import javax.swing.*;
 import java.awt.geom.Point2D;
+
+enum ShipPart
+{
+    Front,
+    Middle,
+    Rear,
+    Small
+}
 
 class ShipPiece {
     public Point2D position;
@@ -10,6 +19,8 @@ class ShipPiece {
         this.position = new Point2D.Double(x, y);
         this.hit = hit;
     }
+
+    public ShipPart part;
 }
 
 public class Ship {
@@ -21,8 +32,15 @@ public class Ship {
 
     private ShipPiece[] positions;
 
-    public Ship(ShipPiece[] positions) {
+    public float getAngle() {
+        return angle;
+    }
+
+    private float angle;
+
+    public Ship(ShipPiece[] positions, float angle) {
         this.positions = positions;
+        this.angle = angle;
     }
 
     public boolean isDestroyed() {
