@@ -13,14 +13,14 @@ enum GameState {
 
 public class Game {
     private MainWindow window;
-    private FieldPanel fieldPanel;
+    private FieldPanel fieldPanel = null;
 
 
-    private GameState gameState = GameState.NOT_STARTED;
+    public GameState gameState = GameState.NOT_STARTED;
 
-    private int boardSize = 10;
-    private int round = 0;
-    private int player = 0;
+    public int boardSize = 10;
+    public int round = 0;
+    public int player = 0;
 
     public Ship[][] playerShips = null;
     public Point2D[][] playerHits = null;
@@ -28,18 +28,12 @@ public class Game {
     public Point2D shipPlacementPoint = null;
 
 
-    public GameState getGameState() {
-        return gameState;
-    }
-    public int getBoardSize() {
-        return boardSize;
-    }
+    private final int SHIP_COUNT = 5;
 
 
     public Game(MainWindow window)
     {
         this.window = window;
-        this.fieldPanel = window.fieldPanel;
     }
 
 
@@ -50,6 +44,10 @@ public class Game {
 
 
     public void Update() {
+
+        if (fieldPanel == null)
+            fieldPanel = window.fieldPanel;
+
 
         switch (gameState) {
 
@@ -70,7 +68,7 @@ public class Game {
             playerShips = new Ship[2][0];
 
         // Player váltás / Placement státusz vége
-        if (playerShips[player].length == 5) {
+        if (playerShips[player].length == SHIP_COUNT) {
             if (player == 0) player = 1;
             else {
                 player = 0;
@@ -78,7 +76,10 @@ public class Game {
             }
         }
 
-        Point2D playerHighlight = fieldPanel.getBoardHighlight(player);
+        if (fieldPanel.boardHighlight == null)
+            return;
+
+        Point2D playerHighlight = fieldPanel.boardHighlight[player];
 
         if (fieldPanel.mouseInBoard() && playerHighlight != null) {
 
@@ -93,7 +94,7 @@ public class Game {
                 else {
                     // TODO: rendes ship generálás
                     ShipPiece[] shipPieces = new ShipPiece[] {
-                        new ShipPiece((int)shipPlacementPoint.getX(), (int)shipPlacementPoint.getY(), false, ShipPart.Small)
+                        new ShipPiece((int)shipPlacementPoint.getX(), (int)shipPlacementPoint.getY(), false, ShipPart.SMALL)
                     };
 
                     Ship ship = new Ship(shipPieces, 0);

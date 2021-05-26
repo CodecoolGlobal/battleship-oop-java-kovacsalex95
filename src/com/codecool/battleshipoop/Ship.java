@@ -4,10 +4,10 @@ import java.awt.geom.Point2D;
 
 enum ShipPart
 {
-    Front,
-    Middle,
-    Rear,
-    Small
+    FRONT,
+    MIDDLE,
+    REAR,
+    SMALL
 }
 
 class ShipPiece {
@@ -25,17 +25,8 @@ class ShipPiece {
 
 public class Ship {
 
-    private ShipPiece[] shipPieces;
-
-    private float angle;
-
-
-    public ShipPiece[] getShipPieces() {
-        return shipPieces;
-    }
-    public float getAngle() {
-        return angle;
-    }
+    public ShipPiece[] shipPieces;
+    public float angle;
 
 
     public Ship(ShipPiece[] shipPieces, float angle) {

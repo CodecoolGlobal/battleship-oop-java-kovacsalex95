@@ -12,13 +12,10 @@ public class FieldPanel extends JPanel {
 
     public FieldMouseEvents mouseEvents;
 
-    private Rectangle2D boardRectangle1;
-    private Rectangle2D boardRectangle2;
+    private float cellSize = 0;
 
-    private float cellSize;
-
-    public Point2D board1Highlight = null;
-    public Point2D board2Highlight = null;
+    private Rectangle2D[] boardRectangle;
+    public Point2D[] boardHighlight = null;
 
     private boolean firstFrame = true;
 
@@ -37,19 +34,14 @@ public class FieldPanel extends JPanel {
 
     public final Color oceanColor = Util.rgbColor(147, 202, 248);
 
-
-    public Point2D getBoardHighlight(int player) {
-        return player == 0 ? board1Highlight : board2Highlight;
-    }
-
     public ImageIcon shipPartIcon(ShipPart part) {
-        if (part == ShipPart.Front)
+        if (part == ShipPart.FRONT)
             return shipFront;
-        if (part == ShipPart.Middle)
+        if (part == ShipPart.MIDDLE)
             return shipMiddle;
-        if (part == ShipPart.Rear)
+        if (part == ShipPart.REAR)
             return shipRear;
-        if (part == ShipPart.Small)
+        if (part == ShipPart.SMALL)
             return shipSmall;
 
         return null;
@@ -64,6 +56,8 @@ public class FieldPanel extends JPanel {
     public void init(Game game) {
 
         this.game = game;
+        boardRectangle = new Rectangle2D[2];
+        boardHighlight = new Point2D[] {null, null};
 
         // Órajel (framek)
         Timer clock = new Timer();
@@ -117,7 +111,7 @@ public class FieldPanel extends JPanel {
     private void Frame(Graphics2D g) {
 
         // TODO: írjuk ki hogy "press new game to start"
-        if (game.getGameState() == GameState.NOT_STARTED) return;
+        if (game.gameState == GameState.NOT_STARTED) return;
 
         // Egér kezelése
         if (!firstFrame)
@@ -139,27 +133,21 @@ public class FieldPanel extends JPanel {
 
         if (!mouseInBoard())
         {
-            board1Highlight = board2Highlight = null;
+            boardHighlight = new Point2D[] {null, null};
             return;
         }
 
         // egér a board 1-en
-        if (boardRectangle1.contains(mouseEvents.mousePosition))
+        for (int boardIndex = 0; boardIndex < boardRectangle.length; boardIndex++)
         {
-            Point2D mouseInBoard = new Point2D.Double(mouseEvents.mousePosition.getX() - boardRectangle1.getX(), mouseEvents.mousePosition.getY() - boardRectangle1.getY());
-            board1Highlight = new Point2D.Double(Math.floor(mouseInBoard.getX() / cellSize), Math.floor(mouseInBoard.getY() / cellSize));
+            if (boardRectangle[boardIndex].contains((mouseEvents.mousePosition)))
+            {
+                Point2D mouseInBoard = new Point2D.Double(mouseEvents.mousePosition.getX() - boardRectangle[boardIndex].getX(), mouseEvents.mousePosition.getY() - boardRectangle[boardIndex].getY());
+                boardHighlight[boardIndex] = new Point2D.Double(Math.floor(mouseInBoard.getX() / cellSize), Math.floor(mouseInBoard.getY() / cellSize));
+            }
+            else
+                boardHighlight[boardIndex] = null;
         }
-        else
-            board1Highlight = null;
-
-        // egér a board 2-n
-        if (boardRectangle2.contains(mouseEvents.mousePosition))
-        {
-            Point2D mouseInBoard = new Point2D.Double(mouseEvents.mousePosition.getX() - boardRectangle2.getX(), mouseEvents.mousePosition.getY() - boardRectangle2.getY());
-            board2Highlight = new Point2D.Double(Math.floor(mouseInBoard.getX() / cellSize), Math.floor(mouseInBoard.getY() / cellSize));
-        }
-        else
-            board2Highlight = null;
     }
 
 
@@ -194,87 +182,87 @@ public class FieldPanel extends JPanel {
 
     private void drawBoards(Graphics2D g, Rectangle2D boardsRectangle) {
 
-        boardRectangle1 = new Rectangle2D.Double(boardsRectangle.getX(), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
-        boardRectangle2 = new Rectangle2D.Double(boardsRectangle.getX() + (boardsRectangle.getWidth() - boardsRectangle.getHeight()), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
+        boardRectangle[0] = new Rectangle2D.Double(boardsRectangle.getX(), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
+        boardRectangle[1] = new Rectangle2D.Double(boardsRectangle.getX() + (boardsRectangle.getWidth() - boardsRectangle.getHeight()), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
 
-        drawBoard(g, 0, boardRectangle1);
-        drawBoard(g, 1, boardRectangle2);
+        cellSize = (float)boardRectangle[0].getWidth() / game.boardSize;
 
-        drawBoardHighlight(g, boardRectangle1, board1Highlight, playerColor[0]);
-        drawBoardHighlight(g, boardRectangle2, board2Highlight, playerColor[1]);
+        drawBoard(g, 0);
+        drawBoard(g, 1);
     }
 
 
-    private void drawBoard(Graphics2D g, int boardIndex, Rectangle2D boardRectangle) {
+    private void drawBoard(Graphics2D g, int boardIndex) {
 
         // Player név szöveg
         String playerText = "Player " + ((Integer)(boardIndex + 1));
         int playerTextWidth = g.getFontMetrics().stringWidth(playerText);
 
         g.setPaint(playerColor[boardIndex]);
-        g.drawString(playerText, (int)boardRectangle.getX() + (int)(boardRectangle.getWidth() / 2) - (int)((float)playerTextWidth / 2f), (int)boardRectangle.getY() - padding / 2);
+        g.drawString(playerText, (int)boardRectangle[boardIndex].getX() + (int)(boardRectangle[boardIndex].getWidth() / 2) - (int)((float)playerTextWidth / 2f), (int)boardRectangle[boardIndex].getY() - padding / 2);
 
         // Háttér
         g.setPaint(oceanColor);
-        g.fill(boardRectangle);
+        g.fill(boardRectangle[boardIndex]);
 
         // Rács
-        drawGrid(g, boardRectangle);
+        if ((game.gameState == GameState.PLACEMENT && boardIndex == game.player) || (game.gameState == GameState.ATTACK && boardIndex != game.player)) {
+            drawBoardHighlight(g, boardIndex);
+            drawGrid(g, boardIndex);
+        }
 
         // Hajók
-        if (game.playerShips == null || game.playerShips[boardIndex] == null) return;
+        if (boardIndex == game.player || game.gameState == GameState.END) {
+            if (game.playerShips == null || game.playerShips[boardIndex] == null)
+                return;
 
-        for (int i = 0; i < game.playerShips[boardIndex].length; i++) {
-            drawShip(g, boardRectangle, game.playerShips[boardIndex][i]);
+            for (int i = 0; i < game.playerShips[boardIndex].length; i++) {
+                drawShip(g, boardIndex, game.playerShips[boardIndex][i]);
+            }
         }
     }
 
 
-    private void drawBoardHighlight(Graphics2D g, Rectangle2D boardRectangle, Point2D highlightPosition, Color color) {
+    private void drawBoardHighlight(Graphics2D g, int boardIndex) {
 
-        if (highlightPosition == null)
+        if (boardHighlight == null || boardHighlight[boardIndex] == null)
             return;
 
-        Rectangle2D highlightRectangle = new Rectangle2D.Double(boardRectangle.getX() + highlightPosition.getX() * cellSize, boardRectangle.getY() + highlightPosition.getY() * cellSize, cellSize, cellSize);
+        Rectangle2D highlightRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + boardHighlight[boardIndex].getX() * cellSize, boardRectangle[boardIndex].getY() + boardHighlight[boardIndex].getY() * cellSize, cellSize, cellSize);
 
-        g.setPaint(Util.fade(color, 0.65f));
+        g.setPaint(Util.fade(playerColor[boardIndex], 0.65f));
         g.fill(highlightRectangle);
     }
 
 
-    private void drawGrid(Graphics2D g, Rectangle2D boardRectangle) {
-
-        int boardSize = game.getBoardSize();
-        cellSize = (float) boardRectangle.getWidth() / boardSize;
+    private void drawGrid(Graphics2D g, int boardIndex) {
 
         g.setPaint(Color.BLACK);
 
-        for (int i = 1; i < boardSize; i++) {
-            Line2D horizontal = new Line2D.Double(boardRectangle.getX(), boardRectangle.getY() + i * cellSize, boardRectangle.getX() + boardRectangle.getWidth(), boardRectangle.getY() + i * cellSize);
+        for (int i = 1; i < cellSize; i++) {
+            Line2D horizontal = new Line2D.Double(boardRectangle[boardIndex].getX(), boardRectangle[boardIndex].getY() + i * cellSize, boardRectangle[boardIndex].getX() + boardRectangle[boardIndex].getWidth(), boardRectangle[boardIndex].getY() + i * cellSize);
             g.draw(horizontal);
 
-            Line2D vertical = new Line2D.Double(boardRectangle.getX() + i * cellSize, boardRectangle.getY(), boardRectangle.getX() + i * cellSize, boardRectangle.getY() + boardRectangle.getHeight());
+            Line2D vertical = new Line2D.Double(boardRectangle[boardIndex].getX() + i * cellSize, boardRectangle[boardIndex].getY(), boardRectangle[boardIndex].getX() + i * cellSize, boardRectangle[boardIndex].getY() + boardRectangle[boardIndex].getHeight());
             g.draw(vertical);
         }
     }
 
 
-    private void drawShip(Graphics2D g, Rectangle2D boardRectangle, Ship ship) {
+    private void drawShip(Graphics2D g, int boardIndex, Ship ship) {
 
-        ShipPiece[] shipPieces = ship.getShipPieces();
+        for (int i = 0; i < ship.shipPieces.length; i++) {
 
-        for (int i = 0; i < shipPieces.length; i++) {
-
-            ShipPiece shipPiece = shipPieces[i];
-            drawShipPart(g, boardRectangle, shipPiece.position, shipPiece.part, ship.getAngle());
+            ShipPiece shipPiece = ship.shipPieces[i];
+            drawShipPart(g, boardIndex, shipPiece.position, shipPiece.part, ship.angle);
         }
     }
 
 
-    private void drawShipPart(Graphics2D g, Rectangle2D boardRectangle, Point2D cell, ShipPart part, float angle) {
+    private void drawShipPart(Graphics2D g, int boardIndex, Point2D cell, ShipPart part, float angle) {
 
         // Rectangle számolás
-        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle.getX() + cellSize * cell.getX(), boardRectangle.getY() + cellSize * cell.getY(), cellSize, cellSize);
+        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * cell.getX(), boardRectangle[boardIndex].getY() + cellSize * cell.getY(), cellSize, cellSize);
 
         // Ikon bekérés
         Image partIcon = shipPartIcon(part).getImage();
