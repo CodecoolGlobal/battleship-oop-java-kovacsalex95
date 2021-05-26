@@ -1,6 +1,7 @@
 package com.codecool.battleshipoop;
 
 import java.awt.geom.Point2D;
+import java.sql.Timestamp;
 import java.util.Arrays;
 
 
@@ -28,6 +29,9 @@ public class Game {
 
     public Point2D shipPlacementPoint = null;
 
+    public int frozeState = 0;
+    public Timestamp frozeStartTime;
+
 
     public final int SHIP_COUNT = 5;
 
@@ -40,6 +44,7 @@ public class Game {
 
     public void Start() {
         gameState = GameState.PLACEMENT;
+        frozeState = 0;
 
         round = 0;
         player = 0;
@@ -154,6 +159,23 @@ public class Game {
 
 
     private void UpdateAttack() {
+        if (frozeState > 0)
+        {
+            if (frozeState == 1) {
+                if (Util.elapsedMiliseconds(new Timestamp(System.currentTimeMillis()), frozeStartTime) > 1000 || fieldPanel.mouseEvents.mouseLeftClick)
+                    frozeState = 2;
+            }
+            else
+            {
+                if (fieldPanel.mouseEvents.mouseLeftClick) {
+                    player = player == 0 ? 1 : 0;
+                    frozeState = 0;
+                }
+            }
+
+            return;
+        }
+
         if (playerShipDestroyed(player))
         {
             // TODO: nyert XY
@@ -189,8 +211,14 @@ public class Game {
                 }
             }
 
-            player = player == 0 ? 1 : 0;
+            FrozeGame();
         }
+    }
+
+    private void FrozeGame()
+    {
+        frozeState = 1;
+        frozeStartTime = new Timestamp(System.currentTimeMillis());
     }
 
 
