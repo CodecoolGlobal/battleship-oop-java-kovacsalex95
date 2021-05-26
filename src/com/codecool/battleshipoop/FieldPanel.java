@@ -28,8 +28,12 @@ public class FieldPanel extends JPanel {
 
     private ImageIcon oceanImage;
 
+    private ImageIcon logoImage;
+
     public boolean madness = false;
     public float madnessAmount = 0;
+
+    private float explosionRotation = 0;
 
     private final float padding = 30;
 
@@ -98,6 +102,8 @@ public class FieldPanel extends JPanel {
 
         java.net.URL oceanUrl = classLoader.getResource("images/ocean.jpg");
 
+        java.net.URL logoUrl = classLoader.getResource("images/logo.png");
+
         shipFront = new ImageIcon(frontUrl);
         shipMiddle = new ImageIcon(middleUrl);
         shipRear = new ImageIcon(rearUrl);
@@ -106,6 +112,8 @@ public class FieldPanel extends JPanel {
         explosionIcon = new ImageIcon(explosionUrl);
 
         oceanImage = new ImageIcon(oceanUrl);
+
+        logoImage = new ImageIcon(logoUrl);
     }
 
     public void clockTick() {
@@ -131,9 +139,14 @@ public class FieldPanel extends JPanel {
                 madnessAmount -= 360;
         }
 
+        explosionRotation++;
+
         // game not started yet
         if (game.gameState == GameState.NOT_STARTED) {
-            g.drawString("Press NEW GAME to START", this.getWidth() / 2 - 110, this.getHeight() / 2);
+            //g.drawString("Press NEW GAME to START", this.getWidth() / 2 - 110, this.getHeight() / 2);
+
+            float logoSize = Math.min(this.getWidth(), this.getHeight());
+            g.drawImage(logoImage.getImage(), (int)(this.getWidth() - logoSize) / 2, (int)(this.getHeight() - logoSize) / 2, (int)logoSize, (int)logoSize, null);
             return;
         }
 
@@ -177,11 +190,6 @@ public class FieldPanel extends JPanel {
 
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
-
-        // Background
-        Rectangle2D backRectangle = new Rectangle2D.Double(0, 0, panelSize.width, panelSize.height);
-        g.setPaint(Color.getHSBColor(0, 0, 0.2f));
-        g.fill(backRectangle);
 
         // Rotate boards
         AffineTransform backup = g.getTransform();
@@ -228,17 +236,34 @@ public class FieldPanel extends JPanel {
         String playerText = "Player " + ((Integer)(boardIndex + 1));
         int playerTextWidth = g.getFontMetrics().stringWidth(playerText);
 
-        g.setPaint(playerColor[boardIndex]);
+        g.setPaint(playerColor[boardIndex].darker());
         g.drawString(playerText, (int)boardRectangle[boardIndex].getX() + (int)(boardRectangle[boardIndex].getWidth() / 2) - (int)((float)playerTextWidth / 2f), (int)boardRectangle[boardIndex].getY() - padding / 2);
 
         // Háttér
         g.drawImage(oceanImage.getImage(), (int)Math.floor(boardRectangle[boardIndex].getX()), (int)Math.floor(boardRectangle[boardIndex].getY()), (int)Math.ceil(boardRectangle[boardIndex].getWidth()), (int)Math.ceil(boardRectangle[boardIndex].getHeight()), null);
 
+
+        if (game.frozeState == 2) {
+            if (boardIndex != game.player) {
+                g.setPaint(Util.rgbAColor(255, 255, 255, 0.6f));
+                g.fill(boardRectangle[boardIndex]);
+
+                String prepareText = "Player " + ((Integer) (boardIndex + 1)) + ": prepare to attack!";
+                int prepareTextWidth = g.getFontMetrics().stringWidth(prepareText);
+
+                g.setPaint(Color.black);
+                g.drawString(prepareText, (int)boardRectangle[boardIndex].getX() + (int)(boardRectangle[boardIndex].getWidth() / 2) - prepareTextWidth / 2, (int)boardRectangle[boardIndex].getY() + (int)(boardRectangle[boardIndex].getHeight() / 2));
+            }
+
+            return;
+        }
+
+
         boolean placementPreviewActive = game.gameState == GameState.PLACEMENT && boardIndex == game.player && game.shipPlacementPoint != null;
 
         // Rács
         if ((game.gameState == GameState.PLACEMENT && boardIndex == game.player) || (game.gameState == GameState.ATTACK && boardIndex != game.player)) {
-            if (!placementPreviewActive)
+            if (!placementPreviewActive && game.frozeState == 0)
                 drawBoardHighlight(g, boardIndex);
             drawGrid(g, boardIndex);
         }
@@ -290,7 +315,7 @@ public class FieldPanel extends JPanel {
             if (shipHit)
                 g.drawImage(explosionIcon.getImage(), (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
             else {
-                g.setPaint(Util.rgbAColor(0, 0, 0, 0.3f));
+                g.setPaint(Util.rgbAColor(0, 0, 0, 0.6f));
                 g.fill(partRectangle);
             }
         }
@@ -329,7 +354,7 @@ public class FieldPanel extends JPanel {
 
     private void drawGrid(Graphics2D g, int boardIndex) {
 
-        g.setPaint(Color.BLACK);
+        g.setPaint(Util.fade(Color.BLACK, 0.35f));
 
         for (int i = 1; i < game.boardSize; i++) {
             Line2D horizontal = new Line2D.Double(boardRectangle[boardIndex].getX(), boardRectangle[boardIndex].getY() + i * cellSize, boardRectangle[boardIndex].getX() + boardRectangle[boardIndex].getWidth(), boardRectangle[boardIndex].getY() + i * cellSize);
@@ -346,27 +371,34 @@ public class FieldPanel extends JPanel {
         for (int i = 0; i < ship.shipPieces.length; i++) {
 
             ShipPiece shipPiece = ship.shipPieces[i];
-            drawShipPart(g, boardIndex, shipPiece.position, shipPiece.part, ship.angle);
+            drawShipPart(g, boardIndex, ship, shipPiece);//shipPiece.position, shipPiece.part, ship.angle, shipPiece.hit, shipPiece.explosionAngleOffset);
         }
     }
 
 
-    private void drawShipPart(Graphics2D g, int boardIndex, Point2D cell, ShipPart part, float angle) {
+    private void drawShipPart(Graphics2D g, int boardIndex, Ship ship, ShipPiece shipPiece) {// Point2D cell, ShipPart part, float angle, boolean hit, float explosionAngleOffset) {
 
         // Rectangle számolás
-        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * cell.getX(), boardRectangle[boardIndex].getY() + cellSize * cell.getY(), cellSize, cellSize);
+        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX(), boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY(), cellSize, cellSize);
 
         // Ikon bekérés
-        Image partIcon = shipPartIcon(part).getImage();
+        Image partIcon = shipPartIcon(shipPiece.part).getImage();
 
         // Grafika forgatása
-        AffineTransform backup = Util.rotateGraphics(g, angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
+        AffineTransform backup = Util.rotateGraphics(g, ship.angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
 
         // Kép rajzolás
         g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
 
         // Grafika forgatás reset
         g.setTransform(backup);
+
+
+        if (shipPiece.hit) {
+            AffineTransform backup2 = Util.rotateGraphics(g, shipPiece.explosionAngleOffset + explosionRotation * shipPiece.explosionAngleSpeed, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
+            g.drawImage(explosionIcon.getImage(), (int) Math.floor(partRectangle.getX()), (int) Math.floor(partRectangle.getY()), (int) Math.ceil(partRectangle.getWidth()), (int) Math.ceil(partRectangle.getHeight()), null);
+            g.setTransform(backup2);
+        }
     }
 
 
