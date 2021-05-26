@@ -29,32 +29,6 @@ public class Util {
         return backup;
     }
 
-    public static Ship[] addShip(Ship[] collection, Ship ship)
-    {
-        Ship[] result = new Ship[collection.length + 1];
-        for (int i=0; i < collection.length; i++)
-            result[i] = collection[i];
-        result[collection.length] = ship;
-        return result;
-    }
-
-    public static Ship[] removeShip(Ship[] collection)
-    {
-        if (collection.length == 0) return collection;
-
-        Ship[] result = new Ship[collection.length - 1];
-        for (int i=0; i < result.length; i++)
-            result[i] = collection[i];
-        return result;
-    }
-
-    public static void cellHighlight(Graphics2D g, Point2D cell, Color color, Rectangle2D rectangle, float cellSize) {
-        Rectangle2D highlightRectangle = new Rectangle2D.Double(rectangle.getX() + cell.getX() * cellSize, rectangle.getY() + cell.getY() * cellSize, cellSize, cellSize);
-
-        g.setPaint(color);
-        g.fill(highlightRectangle);
-    }
-
     public static Point2D pointDistance(Point2D pointA, Point2D pointB) {
         return new Point2D.Double(pointB.getX() - pointA.getX(), pointB.getY() - pointA.getY());
     }
@@ -74,6 +48,39 @@ public class Util {
         float directionY = normalize((float)distance.getY());
 
         return new Point2D.Double(directionX, directionY);
+    }
+
+    public static Point2D[] getPlacementPoints(Point2D startPoint, Point2D endPoint, int pointCount, int boardSize) {
+
+        Point2D[] points = new Point2D[pointCount];
+        Point2D direction = Util.pointDirection(startPoint, endPoint);
+        if (direction == null)
+            return null;
+
+        for (int i = 0; i < pointCount; i++) {
+            points[i] = new Point2D.Double(startPoint.getX() + i * direction.getX(), startPoint.getY() + i * direction.getY());
+
+            if (points[i].getX() < 0 || points[i].getY() < 0 || points[i].getX() >= boardSize || points[i].getY() >= boardSize)
+                return null;
+        }
+
+        return points;
+    }
+
+    public static float getPlacementAngle(Point2D startPoint, Point2D endPoint)
+    {
+        Point2D direction = Util.pointDirection(startPoint, endPoint);
+        if (direction == null)
+            return 0;
+
+        if (direction.equals(new Point2D.Double(-1, 0)))
+            return 0;
+        if (direction.equals(new Point2D.Double(1, 0)))
+            return 180;
+        if (direction.equals(new Point2D.Double(0, -1)))
+            return 90;
+
+        return 270;
     }
 
 }
