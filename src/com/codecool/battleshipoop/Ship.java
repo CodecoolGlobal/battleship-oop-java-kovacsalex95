@@ -19,6 +19,11 @@ class ShipPiece {
         this.position = new Point2D.Double(x, y);
         this.hit = hit;
     }
+    public ShipPiece(Point2D position, boolean hit, ShipPart part) {
+        this.part = part;
+        this.position = position;
+        this.hit = hit;
+    }
 
     public ShipPart part;
 }
