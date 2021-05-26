@@ -21,4 +21,21 @@ public class Util {
         g.setTransform(a);
         return backup;
     }
+
+    public static Ship[] addShip(Ship[] collection, Ship ship)
+    {
+        Ship[] result = new Ship[collection.length + 1];
+        for (int i=0; i < collection.length; i++)
+            result[i] = collection[i];
+        result[collection.length] = ship;
+        return result;
+    }
+
+    public static Ship[] removeShip(Ship[] collection)
+    {
+        Ship[] result = new Ship[collection.length - 1];
+        for (int i=0; i < result.length; i++)
+            result[i] = collection[i];
+        return result;
+    }
 }
