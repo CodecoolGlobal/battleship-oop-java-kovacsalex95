@@ -42,7 +42,8 @@ public class MainWindow {
         window.dontPressMeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO: [BUTTON] Dont press me
+                window.fieldPanel.madness = !window.fieldPanel.madness;
+                window.fieldPanel.madnessAmount = 0;
             }
         });
 
@@ -56,7 +57,7 @@ public class MainWindow {
         window.exitGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO: [BUTTON] Exit game
+                System.exit(4);
             }
         });
 
