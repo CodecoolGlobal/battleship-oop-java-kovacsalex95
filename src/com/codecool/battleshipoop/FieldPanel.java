@@ -2,18 +2,13 @@ package com.codecool.battleshipoop;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.geom.*;
-import java.awt.image.ImageObserver;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class FieldPanel extends JPanel {
 
     private Game game = null;
-    private Timer clock;
 
     public FieldMouseEvents mouseEvents;
 
@@ -25,20 +20,7 @@ public class FieldPanel extends JPanel {
     public Point2D board1Highlight = null;
     public Point2D board2Highlight = null;
 
-    public Point2D getBoardHighlight(int player) {
-        return player == 0 ? board1Highlight : board2Highlight;
-    }
-
     private boolean firstFrame = true;
-
-    private float padding = 30;
-
-    public static Color[] playerColor = new Color[] {
-            Util.rgbColor(252, 150, 150),
-            new Color(0.96f, 0.96f, 0.48f)
-    };
-
-    public static Color oceanColor = Util.rgbColor(147, 202, 248);
 
     private ImageIcon shipFront;
     private ImageIcon shipMiddle;
@@ -46,9 +28,21 @@ public class FieldPanel extends JPanel {
     private ImageIcon shipSmall;
 
 
+    private final float padding = 30;
 
-    public ImageIcon shipPartIcon(ShipPart part)
-    {
+    public final Color[] playerColor = new Color[]{
+            Util.rgbColor(252, 150, 150),
+            new Color(0.96f, 0.96f, 0.48f)
+    };
+
+    public final Color oceanColor = Util.rgbColor(147, 202, 248);
+
+
+    public Point2D getBoardHighlight(int player) {
+        return player == 0 ? board1Highlight : board2Highlight;
+    }
+
+    public ImageIcon shipPartIcon(ShipPart part) {
         if (part == ShipPart.Front)
             return shipFront;
         if (part == ShipPart.Middle)
@@ -65,27 +59,34 @@ public class FieldPanel extends JPanel {
         return mouseEvents.mousePosition != null;
     }
 
+
+    // MISC
     public void init(Game game) {
+
         this.game = game;
-        this.clock = new Timer();
-        this.clock.scheduleAtFixedRate(new TimerTask() {
+
+        // Órajel (framek)
+        Timer clock = new Timer();
+        clock.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 clockTick();
             }
         }, 50, 50);
 
+        // Betűméret
         setFont(getFont().deriveFont(18f));
 
+        // Egér esemélyek
         mouseEvents = new FieldMouseEvents();
         addMouseListener(mouseEvents);
         addMouseMotionListener(mouseEvents);
 
+        // Képek betöltése
         LoadImages();
     }
 
-    private void LoadImages()
-    {
+    private void LoadImages() {
         ClassLoader classLoader = this.getClass().getClassLoader();
 
         java.net.URL frontUrl = classLoader.getResource("images/ship_front.png");
@@ -103,26 +104,39 @@ public class FieldPanel extends JPanel {
         this.repaint();
     }
 
+
+    // FRAMEK
     public void paintComponent(Graphics originalGraphics) {
 
         super.paintComponent(originalGraphics);
+
+        Frame((Graphics2D) originalGraphics);
+    }
+
+
+    private void Frame(Graphics2D g) {
+
+        // TODO: írjuk ki hogy "press new game to start"
         if (game.getGameState() == GameState.NOT_STARTED) return;
 
-
+        // Egér kezelése
         if (!firstFrame)
             handleMouseEvents();
 
-        drawAll((Graphics2D) originalGraphics, new Dimension(this.getWidth(), this.getHeight()));
+        // Rajzolás
+        drawElements(g, new Dimension(this.getWidth(), this.getHeight()));
 
-        firstFrame = false;
-
+        // Játéklogika frissítése
         game.Update();
+
+        // Reset
+        firstFrame = false;
         mouseEvents.reset();
     }
 
 
-    private void handleMouseEvents()
-    {
+    private void handleMouseEvents() {
+
         if (!mouseInBoard())
         {
             board1Highlight = board2Highlight = null;
@@ -149,7 +163,9 @@ public class FieldPanel extends JPanel {
     }
 
 
-    private void drawAll(Graphics2D g, Dimension panelSize) {
+    // RAJZOLÁS
+    private void drawElements(Graphics2D g, Dimension panelSize) {
+
         // Background
         Rectangle2D backRectangle = new Rectangle2D.Double(0, 0, panelSize.width, panelSize.height);
         g.setPaint(Color.getHSBColor(0, 0, 0.2f));
@@ -177,6 +193,7 @@ public class FieldPanel extends JPanel {
 
 
     private void drawBoards(Graphics2D g, Rectangle2D boardsRectangle) {
+
         boardRectangle1 = new Rectangle2D.Double(boardsRectangle.getX(), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
         boardRectangle2 = new Rectangle2D.Double(boardsRectangle.getX() + (boardsRectangle.getWidth() - boardsRectangle.getHeight()), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
 
@@ -189,23 +206,22 @@ public class FieldPanel extends JPanel {
 
 
     private void drawBoard(Graphics2D g, int boardIndex, Rectangle2D boardRectangle) {
+
+        // Player név szöveg
         String playerText = "Player " + ((Integer)(boardIndex + 1));
         int playerTextWidth = g.getFontMetrics().stringWidth(playerText);
 
         g.setPaint(playerColor[boardIndex]);
         g.drawString(playerText, (int)boardRectangle.getX() + (int)(boardRectangle.getWidth() / 2) - (int)((float)playerTextWidth / 2f), (int)boardRectangle.getY() - padding / 2);
 
-        // OCEAN
+        // Háttér
         g.setPaint(oceanColor);
         g.fill(boardRectangle);
 
+        // Rács
         drawGrid(g, boardRectangle);
 
-        // DEBUG SHIPS (removable)
-//        drawShipPart(g, boardRectangle, new Point2D.Double(0, 0), ShipPart.Front, 0);
-//        drawShipPart(g, boardRectangle, new Point2D.Double(1, 0), ShipPart.Middle, 0);
-//        drawShipPart(g, boardRectangle, new Point2D.Double(2, 0), ShipPart.Rear,0 );
-//        drawShipPart(g, boardRectangle, new Point2D.Double(3, 3), ShipPart.Small, 0);
+        // Hajók
         if (game.playerShips == null || game.playerShips[boardIndex] == null) return;
 
         for (int i = 0; i < game.playerShips[boardIndex].length; i++) {
@@ -213,23 +229,25 @@ public class FieldPanel extends JPanel {
         }
     }
 
-    private void drawBoardHighlight(Graphics2D g, Rectangle2D boardRectangle, Point2D highlightPosition, Color color)
-    {
+
+    private void drawBoardHighlight(Graphics2D g, Rectangle2D boardRectangle, Point2D highlightPosition, Color color) {
+
         if (highlightPosition == null)
             return;
 
         Rectangle2D highlightRectangle = new Rectangle2D.Double(boardRectangle.getX() + highlightPosition.getX() * cellSize, boardRectangle.getY() + highlightPosition.getY() * cellSize, cellSize, cellSize);
 
-
-
         g.setPaint(Util.fade(color, 0.65f));
         g.fill(highlightRectangle);
     }
 
+
     private void drawGrid(Graphics2D g, Rectangle2D boardRectangle) {
-        g.setPaint(Color.BLACK);
+
         int boardSize = game.getBoardSize();
         cellSize = (float) boardRectangle.getWidth() / boardSize;
+
+        g.setPaint(Color.BLACK);
 
         for (int i = 1; i < boardSize; i++) {
             Line2D horizontal = new Line2D.Double(boardRectangle.getX(), boardRectangle.getY() + i * cellSize, boardRectangle.getX() + boardRectangle.getWidth(), boardRectangle.getY() + i * cellSize);
@@ -240,93 +258,37 @@ public class FieldPanel extends JPanel {
         }
     }
 
-    private void drawShipPart(Graphics2D g, Rectangle2D boardRectangle, Point2D cell, ShipPart part, float angle)
-    {
-        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle.getX() + cellSize * cell.getX(), boardRectangle.getY() + cellSize * cell.getY(), cellSize, cellSize);
-        Image partIcon = shipPartIcon(part).getImage();
-
-
-        AffineTransform backup = Util.rotateGraphics(g, angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
-        g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
-        g.setTransform(backup);
-    }
 
     private void drawShip(Graphics2D g, Rectangle2D boardRectangle, Ship ship) {
+
         ShipPiece[] shipPieces = ship.getShipPieces();
+
         for (int i = 0; i < shipPieces.length; i++) {
+
             ShipPiece shipPiece = shipPieces[i];
             drawShipPart(g, boardRectangle, shipPiece.position, shipPiece.part, ship.getAngle());
         }
     }
 
+
+    private void drawShipPart(Graphics2D g, Rectangle2D boardRectangle, Point2D cell, ShipPart part, float angle) {
+
+        // Rectangle számolás
+        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle.getX() + cellSize * cell.getX(), boardRectangle.getY() + cellSize * cell.getY(), cellSize, cellSize);
+
+        // Ikon bekérés
+        Image partIcon = shipPartIcon(part).getImage();
+
+        // Grafika forgatása
+        AffineTransform backup = Util.rotateGraphics(g, angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
+
+        // Kép rajzolás
+        g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
+
+        // Grafika forgatás reset
+        g.setTransform(backup);
+    }
+
 }
 
-class FieldMouseEvents implements MouseListener, MouseMotionListener {
 
-    public Point2D mousePosition = null;
-    public boolean mouseLeftDown = false;
-    public boolean mouseRightDown = false;
-    public boolean mouseLeftClick = false;
-    public boolean mouseRightClick = false;
-
-    public void reset()
-    {
-        mouseLeftClick = false;
-        mouseRightClick = false;
-    }
-
-    // MOUSE EVENTS
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        // KATTINTÁS
-
-        if (e.getButton() == 1)
-            mouseLeftClick = true;
-        if (e.getButton() == 2)
-            mouseRightClick = true;
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        // EGÉR GOMB LE
-
-        if (e.getButton() == 1)
-            mouseLeftDown = true;
-        if (e.getButton() == 2)
-            mouseRightDown = true;
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        // EGÉR GOMB FEL
-
-        if (e.getButton() == 0)
-            mouseLeftDown = false;
-        if (e.getButton() == 1)
-            mouseRightDown = false;
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        // EGÉR BELÉPETT
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-        // EGÉR KILÉPETT
-        mousePosition = null;
-        mouseLeftDown = false;
-        mouseRightDown = false;
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        // EGÉR HÚZOTT
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        // EGÉR MOZGOTT
-        mousePosition = e.getPoint();
-    }
-}

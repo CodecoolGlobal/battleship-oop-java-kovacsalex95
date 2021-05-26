@@ -2,6 +2,7 @@ package com.codecool.battleshipoop;
 
 import java.awt.geom.Point2D;
 
+
 enum GameState {
     NOT_STARTED,
     PLACEMENT,
@@ -9,57 +10,66 @@ enum GameState {
     END
 }
 
+
 public class Game {
     private MainWindow window;
+    private FieldPanel fieldPanel;
 
-    public GameState getGameState() {
-        return gameState;
-    }
 
     private GameState gameState = GameState.NOT_STARTED;
-
 
     private int boardSize = 10;
     private int round = 0;
     private int player = 0;
 
     public Ship[][] playerShips = null;
-
     public Point2D[][] playerHits = null;
 
-    private Point2D shipPlacementPoint = null;
+    public Point2D shipPlacementPoint = null;
 
+
+    public GameState getGameState() {
+        return gameState;
+    }
     public int getBoardSize() {
         return boardSize;
     }
-    public void setBoardSize(int boardSize) {
-        this.boardSize = boardSize;
-    }
+
 
     public Game(MainWindow window)
     {
         this.window = window;
+        this.fieldPanel = window.fieldPanel;
     }
 
+
     public void Start() {
-        // RESET
+        // TODO: RESET
         gameState = GameState.PLACEMENT;
     }
 
+
     public void Update() {
+
         switch (gameState) {
+
             case PLACEMENT:
                 UpdatePlacement();
                 break;
+
             case ATTACK:
                 UpdateAttack();
                 break;
         }
     }
 
+
     private void UpdatePlacement() {
+
         if (playerShips == null)
             playerShips = new Ship[2][0];
+
+        // Player váltás / Placement státusz vége
         if (playerShips[player].length == 5) {
             if (player == 0) player = 1;
             else {
@@ -68,32 +78,39 @@ public class Game {
             }
         }
 
-        Point2D playerHighlight = window.fieldDrawer.getBoardHighlight(player);
+        Point2D playerHighlight = fieldPanel.getBoardHighlight(player);
 
-        if (window.fieldDrawer.mouseInBoard() && playerHighlight != null) {
-            if (window.fieldDrawer.mouseEvents.mouseLeftClick)
-            {
+        if (fieldPanel.mouseInBoard() && playerHighlight != null) {
+
+            // Hajó lerakás
+            if (fieldPanel.mouseEvents.mouseLeftClick) {
+
+                // Kezdőpont
                 if (shipPlacementPoint == null)
-                {
                     shipPlacementPoint = playerHighlight;
-                }
-                else
-                {
+
+                // Irány
+                else {
+                    // TODO: rendes ship generálás
                     ShipPiece[] shipPieces = new ShipPiece[] {
                         new ShipPiece((int)shipPlacementPoint.getX(), (int)shipPlacementPoint.getY(), false, ShipPart.Small)
                     };
+
                     Ship ship = new Ship(shipPieces, 0);
                     playerShips[player] = Util.addShip(playerShips[player], ship);
+
                     shipPlacementPoint = null;
                 }
             }
-            else if (window.fieldDrawer.mouseEvents.mouseRightClick)
-            {
+
+            // Utolsó hajó törlése
+            else if (fieldPanel.mouseEvents.mouseRightClick)
                 playerShips[player] = Util.removeShip(playerShips[player]);
-            }
         }
     }
 
+
     private void UpdateAttack() {
+
     }
 }

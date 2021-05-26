@@ -24,28 +24,25 @@ class ShipPiece {
 }
 
 public class Ship {
-    public static int TYPE_CRUISER = 1;
-    public static int TYPE_BATTLESHIP = 2;
-    public static int TYPE_SUBMARINE = 3;
-    public static int TYPE_DESTROYER = 4;
-    public static int TYPE_CARRIER = 5;
+
+    private ShipPiece[] shipPieces;
+
+    private float angle;
+
 
     public ShipPiece[] getShipPieces() {
         return shipPieces;
     }
-
-    private ShipPiece[] shipPieces;
-
     public float getAngle() {
         return angle;
     }
 
-    private float angle;
 
     public Ship(ShipPiece[] shipPieces, float angle) {
         this.shipPieces = shipPieces;
         this.angle = angle;
     }
+
 
     public boolean isDestroyed() {
         for (ShipPiece position : shipPieces) {

@@ -14,7 +14,7 @@ public class MainWindow {
     private JPanel panelBoardContainer;
     private JToolBar toolbarFunctions;
 
-    public FieldPanel fieldDrawer = null;
+    public FieldPanel fieldPanel = null;
     private Game game = null;
 
     public static void main(String args[])
@@ -28,10 +28,9 @@ public class MainWindow {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(800, 500));
 
-        window.fieldDrawer = new FieldPanel();
-        window.fieldDrawer.init(window.game);
-        window.panelBoardContainer.add(window.fieldDrawer);
-        //window.fieldDrawer.set
+        window.fieldPanel = new FieldPanel();
+        window.fieldPanel.init(window.game);
+        window.panelBoardContainer.add(window.fieldPanel);
 
         window.newGameButton.addActionListener(new ActionListener() {
             @Override
@@ -39,6 +38,28 @@ public class MainWindow {
                 window.game.Start();
             }
         });
+
+        window.dontPressMeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO: [BUTTON] Dont press me
+            }
+        });
+
+        window.creditsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO: [BUTTON] Credits
+            }
+        });
+
+        window.exitGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO: [BUTTON] Exit game
+            }
+        });
+
         frame.pack();
         frame.setVisible(true);
     }
