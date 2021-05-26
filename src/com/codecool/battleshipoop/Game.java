@@ -28,7 +28,7 @@ public class Game {
     public Point2D shipPlacementPoint = null;
 
 
-    private final int SHIP_COUNT = 5;
+    public final int SHIP_COUNT = 5;
 
 
     public Game(MainWindow window)
@@ -38,8 +38,15 @@ public class Game {
 
 
     public void Start() {
-        // TODO: RESET
         gameState = GameState.PLACEMENT;
+
+        round = 0;
+        player = 0;
+
+        playerShips = new Ship[2][0];
+        playerHits = new Point2D[2][0];
+
+        shipPlacementPoint = null;
     }
 
 
