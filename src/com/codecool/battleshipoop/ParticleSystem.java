@@ -30,6 +30,8 @@ public class ParticleSystem {
     private boolean repeating = false;
     private float duration = 5; // másodperc
 
+    public float scale = 1;
+
     public ParticleSystem(ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
     {
         this.duration = duration;
@@ -165,20 +167,20 @@ public class ParticleSystem {
             image2Transp = Math.max(0f, Math.min(1f, image2Transp));
 
             AffineTransform transformBackup = graphics.getTransform();
-            AffineTransform rotatedTransform = AffineTransform.getRotateInstance(Math.toRadians (particles[i].rotation), x + particles[i].position.getX(), y + particles[i].position.getY());
+            AffineTransform rotatedTransform = AffineTransform.getRotateInstance(Math.toRadians (particles[i].rotation), x + (particles[i].position.getX() * scale), y + (particles[i].position.getY() * scale));
             graphics.setTransform(rotatedTransform);
 
             AlphaComposite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, image1Transp);
 
             graphics.setComposite(composite);
 
-            graphics.drawImage(image1, x + (int)Math.floor((float)particles[i].position.getX() - (float)particles[i].size.width / 2f), y + (int)Math.round((float)particles[i].position.getY() - (float)particles[i].size.height / 2f), (int)Math.ceil(particles[i].size.width), (int)Math.ceil(particles[i].size.height), null);
+            graphics.drawImage(image1, x + (int)Math.floor((float)(particles[i].position.getX() * scale) - (float)(particles[i].size.width * scale) / 2f), y + (int)Math.round((float)(particles[i].position.getY() * scale) - (float)(particles[i].size.height * scale) / 2f), (int)Math.ceil(particles[i].size.width * scale), (int)Math.ceil(particles[i].size.height * scale), null);
 
             composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, image2Transp);
 
             graphics.setComposite(composite);
 
-            graphics.drawImage(image2, x + (int)Math.floor((float)particles[i].position.getX() - (float)particles[i].size.width / 2f), y + (int)Math.round((float)particles[i].position.getY() - (float)particles[i].size.height / 2f), (int)Math.ceil(particles[i].size.width), (int)Math.ceil(particles[i].size.height), null);
+            graphics.drawImage(image2, x + (int)Math.floor((float)(particles[i].position.getX() * scale) - (float)(particles[i].size.width * scale) / 2f), y + (int)Math.round((float)(particles[i].position.getY() * scale) - (float)(particles[i].size.height * scale) / 2f), (int)Math.ceil(particles[i].size.width * scale), (int)Math.ceil(particles[i].size.height * scale), null);
 
             graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1));
 
