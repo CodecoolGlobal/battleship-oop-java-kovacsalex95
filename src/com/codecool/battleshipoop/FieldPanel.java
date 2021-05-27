@@ -31,8 +31,6 @@ public class FieldPanel extends JPanel {
     private ImageIcon shipShadowRear;
     private ImageIcon shipShadowSmall;
 
-    private ImageIcon explosionIcon;
-
     private ImageIcon[] explosionImages;
 
     private ImageIcon oceanImage;
@@ -42,16 +40,12 @@ public class FieldPanel extends JPanel {
     public boolean madness = false;
     public float madnessAmount = 0;
 
-    private float explosionRotation = 0;
-
     private final float padding = 30;
 
     public final Color[] playerColor = new Color[]{
             Util.rgbColor(252, 150, 150),
             new Color(0.96f, 0.96f, 0.48f)
     };
-
-    public final Color oceanColor = Util.rgbColor(147, 202, 248);
 
     public ImageIcon shipPartIcon(ShipPart part) {
         if (part == ShipPart.FRONT)
@@ -83,6 +77,8 @@ public class FieldPanel extends JPanel {
         return mouseEvents.mousePosition != null;
     }
 
+    ParticleSystem fireParticles;
+
 
     // MISC
     public void init(Game game) {
@@ -110,6 +106,45 @@ public class FieldPanel extends JPanel {
 
         // Képek betöltése
         loadImages();
+
+        // Particle rendszerek
+        initParticleSystems();
+    }
+
+    private void initParticleSystems()
+    {
+        fireParticles = new ParticleSystem(explosionImages, 10, 5, true, false);
+
+        fireParticles.autoIndexKeyFrames();
+
+        fireParticles.zOrder = ParticleZOrder.LAST_ON_TOP;
+
+        fireParticles.defaultOpacity = 1f;
+        fireParticles.defaultRotation = 0;
+        fireParticles.defaultSize = new Dimension(100, 100);
+        fireParticles.defaultPosition = new Point2D.Double(0, 0);
+        fireParticles.defaultImageIndex = 0;
+
+        fireParticles.addPositionKeyFrame(0f, 0, 0);
+        fireParticles.addPositionKeyFrame(0.2f, -5, -10);
+        fireParticles.addPositionKeyFrame(0.4f, 10, -35);
+        fireParticles.addPositionKeyFrame(0.6f, -15, -50);
+        fireParticles.addPositionKeyFrame(0.8f, 0, -60);
+        fireParticles.addPositionKeyFrame(1f, 15, -70);
+
+        fireParticles.addOpacityKeyFrame(0f, 0f);
+        fireParticles.addOpacityKeyFrame(0.2f, 1f);
+        fireParticles.addOpacityKeyFrame(0.8f, 0.2f);
+        fireParticles.addOpacityKeyFrame(1f, 0f);
+
+        fireParticles.addRotationKeyFrame(0f, 0);
+        fireParticles.addRotationKeyFrame(0.5f, 180f);
+        fireParticles.addRotationKeyFrame(1f, 360f);
+
+        fireParticles.addSizeKeyFrame(0, 70, 70);
+        fireParticles.addSizeKeyFrame(0.2f, 130, 130);
+        fireParticles.addSizeKeyFrame(0.6f, 160, 160);
+        fireParticles.addSizeKeyFrame(1f, 120, 120);
     }
 
     private void loadImages() {
@@ -125,8 +160,6 @@ public class FieldPanel extends JPanel {
         java.net.URL rearShadowUrl = classLoader.getResource("images/ship_shadow_rear.png");
         java.net.URL smallShadowUrl = classLoader.getResource("images/ship_shadow_small.png");
 
-        java.net.URL explosionUrl = classLoader.getResource("images/explosion.png");
-
         java.net.URL oceanUrl = classLoader.getResource("images/ocean.gif");
 
         java.net.URL logoUrl = classLoader.getResource("images/logo.png");
@@ -141,8 +174,6 @@ public class FieldPanel extends JPanel {
         shipShadowMiddle = new ImageIcon(middleShadowUrl);
         shipShadowRear = new ImageIcon(rearShadowUrl);
         shipShadowSmall = new ImageIcon(smallShadowUrl);
-
-        explosionIcon = new ImageIcon(explosionUrl);
 
         oceanImage = new ImageIcon(oceanUrl);
 
@@ -172,10 +203,9 @@ public class FieldPanel extends JPanel {
     }
 
 
-    ParticleSystem particleTest = null;
-
-
     private void frame(Graphics2D g) {
+
+        fireParticles.frame();
 
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -188,8 +218,6 @@ public class FieldPanel extends JPanel {
                 madnessAmount -= 360;
         }
 
-        explosionRotation++;
-
         // Rotate boards
         AffineTransform backup = g.getTransform();
         if (madness) Util.rotateGraphics(g, madnessAmount, (float)this.getWidth() / 2, (float)this.getHeight() / 2);
@@ -201,57 +229,12 @@ public class FieldPanel extends JPanel {
 
         // game not started yet
         if (game.gameState == GameState.NOT_STARTED) {
-            if (particleTest == null)
-            {
-                particleTest = new ParticleSystem(explosionImages, 10, 5, true, false);
 
-                particleTest.autoIndexKeyFrames();
-
-                particleTest.zOrder = ParticleZOrder.FIRST_ON_TOP;
-
-                particleTest.defaultOpacity = 1f;
-                particleTest.defaultRotation = 0;
-                particleTest.defaultSize = new Dimension(100, 100);
-                particleTest.defaultPosition = new Point2D.Double(0, 0);
-                particleTest.defaultImageIndex = 0;
-
-                particleTest.addPositionKeyFrame(0f, 0, 0);
-                particleTest.addPositionKeyFrame(0.2f, -5, -20);
-                particleTest.addPositionKeyFrame(0.4f, 10, -70);
-                particleTest.addPositionKeyFrame(0.6f, -15, -100);
-                particleTest.addPositionKeyFrame(0.8f, 0, -120);
-                particleTest.addPositionKeyFrame(1f, 15, -140);
-
-                particleTest.addOpacityKeyFrame(0f, 0f);
-                particleTest.addOpacityKeyFrame(0.2f, 1f);
-                particleTest.addOpacityKeyFrame(0.7f, 0.2f);
-                particleTest.addOpacityKeyFrame(1f, 0f);
-
-                particleTest.addRotationKeyFrame(0f, 0);
-                particleTest.addRotationKeyFrame(0.5f, 180f);
-                particleTest.addRotationKeyFrame(1f, 360f);
-
-                particleTest.addSizeKeyFrame(0, 70, 70);
-                particleTest.addSizeKeyFrame(0.2f, 130, 130);
-                particleTest.addSizeKeyFrame(0.6f, 160, 160);
-                particleTest.addSizeKeyFrame(1f, 120, 120);
-            }
-
-            particleTest.frame();
-
-            particleTest.scale = 2;
-            particleTest.draw(g, this.getWidth() / 2f, this.getHeight() / 2f);
-
-            particleTest.scale = 1;
-            particleTest.draw(g, this.getWidth() / 4f, this.getHeight() / 2f);
-
-            particleTest.scale = 3;
-            particleTest.draw(g, this.getWidth() / 4f * 3f, this.getHeight() / 2f);
-
-            if (false) {
+            if (true) {
                 float logoSize = Math.min(this.getWidth(), this.getHeight());
                 g.drawImage(logoImage.getImage(), (int) (this.getWidth() - logoSize) / 2, (int) (this.getHeight() - logoSize) / 2, (int) logoSize, (int) logoSize, null);
             }
+
             return;
         }
 
@@ -430,15 +413,20 @@ public class FieldPanel extends JPanel {
             Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * hits[i].getX(), boardRectangle[boardIndex].getY() + cellSize * hits[i].getY(), cellSize, cellSize);
 
             if (shipHit) {
-                AffineTransform backup = Util.rotateGraphics(g, explosionRotation, (float)partRectangle.getX() + (float)partRectangle.getWidth() / 2, (float)partRectangle.getY() + (float)partRectangle.getHeight() / 2);
-                g.drawImage(explosionIcon.getImage(), (int) Math.floor(partRectangle.getX()), (int) Math.floor(partRectangle.getY()), (int) Math.ceil(partRectangle.getWidth()), (int) Math.ceil(partRectangle.getHeight()), null);
-                g.setTransform(backup);
+                fireParticles.scale = particleScale(boardIndex);
+                fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);
             }
             else {
                 g.setPaint(Util.rgbAColor(0, 0, 0, 0.6f));
                 g.fill(partRectangle);
             }
         }
+    }
+
+
+    private float particleScale(int boardIndex)
+    {
+        return (float)boardRectangle[boardIndex].getWidth() / 800;
     }
 
 
@@ -539,9 +527,8 @@ public class FieldPanel extends JPanel {
 
 
         if (shipPiece.hit) {
-            AffineTransform backup2 = Util.rotateGraphics(g, shipPiece.explosionAngleOffset + explosionRotation * shipPiece.explosionAngleSpeed, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
-            g.drawImage(explosionIcon.getImage(), (int) Math.floor(partRectangle.getX()), (int) Math.floor(partRectangle.getY()), (int) Math.ceil(partRectangle.getWidth()), (int) Math.ceil(partRectangle.getHeight()), null);
-            g.setTransform(backup2);
+            fireParticles.scale = particleScale(boardIndex);
+            fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);
         }
     }
 
