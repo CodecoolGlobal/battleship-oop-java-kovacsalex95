@@ -13,6 +13,8 @@ enum ShipPart
 class ShipPiece {
     public Point2D position;
     public boolean hit;
+    public int particleSystemIndex = -1;
+    public int shockwaveParticleSystemIndex = -1;
 
     public ShipPiece(int x, int y, boolean hit, ShipPart part) {
         this.part = part;

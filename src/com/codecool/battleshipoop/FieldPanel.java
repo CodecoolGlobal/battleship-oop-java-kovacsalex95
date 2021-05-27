@@ -3,8 +3,8 @@ package com.codecool.battleshipoop;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class FieldPanel extends JPanel {
 
@@ -32,6 +32,8 @@ public class FieldPanel extends JPanel {
     private ImageIcon shipShadowSmall;
 
     private ImageIcon[] explosionImages;
+
+    private ImageIcon shockWaveImage;
 
     private ImageIcon oceanImage;
 
@@ -77,7 +79,8 @@ public class FieldPanel extends JPanel {
         return mouseEvents.mousePosition != null;
     }
 
-    ParticleSystem fireParticles;
+    //ParticleSystem fireParticles;
+    public ParticleSystemCollection particleSystems;
 
 
     // MISC
@@ -108,43 +111,7 @@ public class FieldPanel extends JPanel {
         loadImages();
 
         // Particle rendszerek
-        initParticleSystems();
-    }
-
-    private void initParticleSystems()
-    {
-        fireParticles = new ParticleSystem(explosionImages, 10, 5, true, false);
-
-        fireParticles.autoIndexKeyFrames();
-
-        fireParticles.zOrder = ParticleZOrder.LAST_ON_TOP;
-
-        fireParticles.defaultOpacity = 1f;
-        fireParticles.defaultRotation = 0;
-        fireParticles.defaultSize = new Dimension(100, 100);
-        fireParticles.defaultPosition = new Point2D.Double(0, 0);
-        fireParticles.defaultImageIndex = 0;
-
-        fireParticles.addPositionKeyFrame(0f, 0, 0);
-        fireParticles.addPositionKeyFrame(0.2f, -5, -10);
-        fireParticles.addPositionKeyFrame(0.4f, 10, -35);
-        fireParticles.addPositionKeyFrame(0.6f, -15, -50);
-        fireParticles.addPositionKeyFrame(0.8f, 0, -60);
-        fireParticles.addPositionKeyFrame(1f, 15, -70);
-
-        fireParticles.addOpacityKeyFrame(0f, 0f);
-        fireParticles.addOpacityKeyFrame(0.2f, 1f);
-        fireParticles.addOpacityKeyFrame(0.8f, 0.2f);
-        fireParticles.addOpacityKeyFrame(1f, 0f);
-
-        fireParticles.addRotationKeyFrame(0f, 0);
-        fireParticles.addRotationKeyFrame(0.5f, 180f);
-        fireParticles.addRotationKeyFrame(1f, 360f);
-
-        fireParticles.addSizeKeyFrame(0, 70, 70);
-        fireParticles.addSizeKeyFrame(0.2f, 130, 130);
-        fireParticles.addSizeKeyFrame(0.6f, 160, 160);
-        fireParticles.addSizeKeyFrame(1f, 120, 120);
+        particleSystems = new ParticleSystemCollection();
     }
 
     private void loadImages() {
@@ -160,6 +127,7 @@ public class FieldPanel extends JPanel {
         java.net.URL rearShadowUrl = classLoader.getResource("images/ship_shadow_rear.png");
         java.net.URL smallShadowUrl = classLoader.getResource("images/ship_shadow_small.png");
 
+        java.net.URL shockWaveImageUrl = classLoader.getResource("images/shockwave.png");
         java.net.URL oceanUrl = classLoader.getResource("images/ocean.gif");
 
         java.net.URL logoUrl = classLoader.getResource("images/logo.png");
@@ -174,6 +142,8 @@ public class FieldPanel extends JPanel {
         shipShadowMiddle = new ImageIcon(middleShadowUrl);
         shipShadowRear = new ImageIcon(rearShadowUrl);
         shipShadowSmall = new ImageIcon(smallShadowUrl);
+
+        shockWaveImage = new ImageIcon(shockWaveImageUrl);
 
         oceanImage = new ImageIcon(oceanUrl);
 
@@ -203,9 +173,10 @@ public class FieldPanel extends JPanel {
     }
 
 
-    private void frame(Graphics2D g) {
 
-        fireParticles.frame();
+    //ParticleSystem shockwaveTest = null;
+
+    private void frame(Graphics2D g) {
 
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -230,10 +201,8 @@ public class FieldPanel extends JPanel {
         // game not started yet
         if (game.gameState == GameState.NOT_STARTED) {
 
-            if (true) {
-                float logoSize = Math.min(this.getWidth(), this.getHeight());
-                g.drawImage(logoImage.getImage(), (int) (this.getWidth() - logoSize) / 2, (int) (this.getHeight() - logoSize) / 2, (int) logoSize, (int) logoSize, null);
-            }
+            float logoSize = Math.min(this.getWidth(), this.getHeight());
+            g.drawImage(logoImage.getImage(), (int) (this.getWidth() - logoSize) / 2, (int) (this.getHeight() - logoSize) / 2, (int) logoSize, (int) logoSize, null);
 
             return;
         }
@@ -283,7 +252,6 @@ public class FieldPanel extends JPanel {
         }
     }
 
-
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
 
@@ -319,6 +287,8 @@ public class FieldPanel extends JPanel {
 
 
     private void drawBoards(Graphics2D g, Rectangle2D boardsRectangle) {
+
+        particleSystems.clipRectangle = boardsRectangle;
 
         boardRectangle[0] = new Rectangle2D.Double(boardsRectangle.getX(), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
         boardRectangle[1] = new Rectangle2D.Double(boardsRectangle.getX() + (boardsRectangle.getWidth() - boardsRectangle.getHeight()), boardsRectangle.getY(), boardsRectangle.getHeight(), boardsRectangle.getHeight());
@@ -393,6 +363,8 @@ public class FieldPanel extends JPanel {
 
             g.setClip(oldClip);
         }
+
+        particleSystems.drawParticlesInOrder(g);
     }
 
 
@@ -402,26 +374,35 @@ public class FieldPanel extends JPanel {
 
         for (int i=0; i<hits.length; i++)
         {
-            boolean shipHit = false;
+            int hitPartParticleSystemIndex = -1;
+            int hitPartShockwaveParticleSystemIndex = -1;
 
             for (int j = 0; j<ships.length; j++)
             {
                 for (int k = 0; k<ships[j].shipPieces.length; k++)
                 {
                     if (ships[j].shipPieces[k].position.equals(hits[i])) {
-                        shipHit = true;
+                        hitPartParticleSystemIndex = ships[j].shipPieces[k].particleSystemIndex;
+                        hitPartShockwaveParticleSystemIndex = ships[j].shipPieces[k].shockwaveParticleSystemIndex;
                         break;
                     }
                 }
-                if (shipHit)
+                if (hitPartParticleSystemIndex != -1 && hitPartShockwaveParticleSystemIndex != -1)
                     break;
             }
 
             Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * hits[i].getX(), boardRectangle[boardIndex].getY() + cellSize * hits[i].getY(), cellSize, cellSize);
 
-            if (shipHit) {
-                fireParticles.scale = particleScale(boardIndex);
-                fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);
+            if (hitPartParticleSystemIndex != -1 || hitPartShockwaveParticleSystemIndex != -1) {
+
+                if (hitPartShockwaveParticleSystemIndex != -1) {
+                    particleSystems.getSystem(hitPartShockwaveParticleSystemIndex).scale = particleScale(boardIndex);
+                    particleSystems.queueParticleDraw(hitPartShockwaveParticleSystemIndex);
+                }
+                if (hitPartParticleSystemIndex != -1) {
+                    particleSystems.getSystem(hitPartParticleSystemIndex).scale = particleScale(boardIndex);
+                    particleSystems.queueParticleDraw(hitPartParticleSystemIndex);
+                }
             }
             else {
                 g.setPaint(Util.rgbAColor(0, 0, 0, 0.6f));
@@ -431,9 +412,73 @@ public class FieldPanel extends JPanel {
     }
 
 
+    public Point2D cellToPixel(Point2D point, int boardIndex)
+    {
+        return new Point2D.Double(boardRectangle[boardIndex].getX() + cellSize * point.getX() + cellSize / 2f, boardRectangle[boardIndex].getY() + cellSize * point.getY() + cellSize / 2f);
+    }
+
+
     private float particleScale(int boardIndex)
     {
         return (float)boardRectangle[boardIndex].getWidth() / 800;
+    }
+
+
+    public int addShockwaveParticle(Point2D point)
+    {
+        int particleIndex = particleSystems.add(point, new ImageIcon[] { shockWaveImage }, 1, 1, false, false);
+
+        ParticleSystem shockwaveTest = particleSystems.getSystem(particleIndex);
+
+        shockwaveTest.addOpacityKeyFrame(0f, 0f);
+        shockwaveTest.addOpacityKeyFrame(0.1f, 0.7f);
+        shockwaveTest.addOpacityKeyFrame(1f, 0f);
+
+        shockwaveTest.addSizeKeyFrame(0f, 0, 0);
+        shockwaveTest.addSizeKeyFrame(0.2f, 140, 140);
+        shockwaveTest.addSizeKeyFrame(1f, 180, 180);
+
+        return particleIndex;
+    }
+
+
+    public int addFireParticle(Point2D point)
+    {
+        int particleIndex = particleSystems.add(point, explosionImages, 10, 5, true, false);
+        ParticleSystem system = particleSystems.getSystem(particleIndex);
+
+        system.autoIndexKeyFrames();
+
+        system.zOrder = ParticleZOrder.LAST_ON_TOP;
+
+        system.defaultOpacity = 1f;
+        system.defaultRotation = 0;
+        system.defaultSize = new Dimension(100, 100);
+        system.defaultPosition = new Point2D.Double(0, 0);
+        system.defaultImageIndex = 0;
+
+        system.addPositionKeyFrame(0f, 0, 0);
+        system.addPositionKeyFrame(0.2f, -5, -10);
+        system.addPositionKeyFrame(0.4f, 10, -35);
+        system.addPositionKeyFrame(0.6f, -15, -50);
+        system.addPositionKeyFrame(0.8f, 0, -60);
+        system.addPositionKeyFrame(1f, 15, -70);
+
+        system.addOpacityKeyFrame(0f, 0f);
+        system.addOpacityKeyFrame(0.2f, 1f);
+        system.addOpacityKeyFrame(0.8f, 0.2f);
+        system.addOpacityKeyFrame(1f, 0f);
+
+        system.addRotationKeyFrame(0f, 0);
+        system.addRotationKeyFrame(0.5f, 180f);
+        system.addRotationKeyFrame(1f, 360f);
+
+        system.addSizeKeyFrame(0, 70, 70);
+        system.addSizeKeyFrame(0.2f, 130, 130);
+        system.addSizeKeyFrame(0.6f, 160, 160);
+        system.addSizeKeyFrame(1f, 120, 120);
+
+        return particleIndex;
     }
 
 
@@ -534,8 +579,13 @@ public class FieldPanel extends JPanel {
 
 
         if (shipPiece.hit) {
-            fireParticles.scale = particleScale(boardIndex);
-            fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);
+            /*fireParticles.scale = particleScale(boardIndex);
+            fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);*/
+
+            if (shipPiece.particleSystemIndex != -1) {
+                particleSystems.getSystem(shipPiece.particleSystemIndex).scale = particleScale(boardIndex);
+                particleSystems.queueParticleDraw(shipPiece.particleSystemIndex);
+            }
         }
     }
 
@@ -631,4 +681,117 @@ public class FieldPanel extends JPanel {
     };
 }
 
+class ParticleSystemInstance
+{
+    public ParticleSystem system;
+    public Point2D position;
+
+    public ParticleSystemInstance(ParticleSystem system, Point2D position)
+    {
+        this.system = system;
+        this.position = position;
+    }
+    public ParticleSystemInstance(ParticleSystem system, float x, float y)
+    {
+        this.system = system;
+        this.position = new Point2D.Double(x, y);
+    }
+}
+
+class ParticleSystemCollection extends ArrayList<ParticleSystemInstance> {
+
+    Queue<Integer> drawOrder;
+
+    public Rectangle2D clipRectangle = null;
+
+    public ParticleSystemCollection() {
+        super();
+
+        drawOrder = new LinkedList();
+    }
+
+    public void queueParticleDraw(int particleIndex)
+    {
+        if (getSystem(particleIndex) != null)
+            drawOrder.add((Integer)particleIndex);
+    }
+
+    public void drawParticlesInOrder(Graphics2D graphics)
+    {
+        Rectangle2D oldClip = graphics.getClipBounds();
+        if (clipRectangle != null)
+            graphics.setClip(clipRectangle);
+
+        while (drawOrder.size() > 0)
+        {
+            Integer particleIndex = drawOrder.poll();
+
+            if (particleIndex == null)
+                continue;
+
+            if (particleIndex < 0 || particleIndex >= super.size())
+                continue;
+
+            ParticleSystemInstance instance = get(particleIndex);
+            instance.system.frame();
+            instance.system.draw(graphics, instance.position);
+        }
+
+        if (clipRectangle != null)
+            graphics.setClip(oldClip);
+    }
+
+    public int add(float x, float y, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
+    {
+        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), x, y));
+        return super.size() - 1;
+    }
+    public int add(Point2D position, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
+    {
+        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), position));
+        return super.size() - 1;
+    }
+    public int add(float x, float y, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
+    {
+        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), x, y));
+        return super.size() - 1;
+    }
+    public int add(Point2D position, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
+    {
+        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), position));
+        return super.size() - 1;
+    }
+
+    public ParticleSystem getSystem(int index)
+    {
+        if (index < 0 || index >= super.size())
+            return null;
+
+        return super.get(index).system;
+    }
+
+    public Point2D getPosition(int index)
+    {
+        if (index < 0 || index >= super.size())
+            return null;
+
+        return super.get(index).position;
+    }
+
+    public float getX(int index)
+    {
+        if (index < 0 || index >= super.size())
+            return 0;
+
+        return (float)super.get(index).position.getX();
+    }
+    public float getY(int index)
+    {
+        if (index < 0 || index >= super.size())
+            return 0;
+
+        return (float)super.get(index).position.getY();
+    }
+
+}
 
