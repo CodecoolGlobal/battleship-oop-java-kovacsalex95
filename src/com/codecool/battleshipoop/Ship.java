@@ -39,10 +39,33 @@ public class Ship {
     public ShipPiece[] shipPieces;
     public float angle;
 
+    public float xDegree;
+    public float yDegree;
+
 
     public Ship(ShipPiece[] shipPieces, float angle) {
         this.shipPieces = shipPieces;
         this.angle = angle;
+
+        xDegree = Util.random(0, 360);
+        yDegree = Util.random(0, 360);
+    }
+
+    public Point2D offset(float speed)
+    {
+        xDegree += speed;
+        yDegree += speed * 1.2f;
+
+        if (xDegree > 360)
+            xDegree -= 360;
+
+        if (yDegree > 360)
+            yDegree -= 360;
+
+        float xOffset = (float)Math.sin(Math.toRadians(xDegree));
+        float yOffset = (float)Math.sin(Math.toRadians(yDegree));
+
+        return new Point2D.Double(xOffset, yOffset);
     }
 
 
