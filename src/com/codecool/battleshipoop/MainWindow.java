@@ -26,7 +26,7 @@ public class MainWindow {
         JFrame frame = new JFrame("Battleship Hokkaido");
         frame.setContentPane(window.panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setMinimumSize(new Dimension(800, 500));
+        frame.setMinimumSize(new Dimension(1280, 800));
 
         window.fieldPanel = new FieldPanel();
         window.fieldPanel.init(window.game);
