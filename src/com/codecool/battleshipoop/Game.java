@@ -41,7 +41,7 @@ public class Game {
     }
 
 
-    public void Start() {
+    public void start() {
         gameState = GameState.PLACEMENT;
         frozeState = 0;
 
@@ -60,7 +60,7 @@ public class Game {
     }
 
 
-    public void Update() {
+    public void update() {
 
         if (fieldPanel == null)
             fieldPanel = window.fieldPanel;
@@ -69,7 +69,7 @@ public class Game {
         switch (gameState) {
 
             case PLACEMENT:
-                UpdatePlacement();
+                updatePlacement();
                 break;
 
             case PREPARE_TO_ATTACK:
@@ -78,13 +78,13 @@ public class Game {
                 break;
 
             case ATTACK:
-                UpdateAttack();
+                updateAttack();
                 break;
         }
     }
 
 
-    private void UpdatePlacement() {
+    private void updatePlacement() {
 
         if (playerShips == null)
             playerShips = new Ship[2][0];
@@ -170,7 +170,7 @@ public class Game {
     }
 
 
-    private void UpdateAttack() {
+    private void updateAttack() {
 
         if (playerShipDestroyed(player)) {
             gameState = GameState.END;
@@ -216,12 +216,12 @@ public class Game {
                 }
             }
 
-            FrozeGame();
+            frozeGame();
         }
     }
 
 
-    private void FrozeGame() {
+    private void frozeGame() {
         frozeState = 1;
         frozeStartTime = new Timestamp(System.currentTimeMillis());
     }

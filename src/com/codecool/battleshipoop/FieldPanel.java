@@ -107,10 +107,10 @@ public class FieldPanel extends JPanel {
         addMouseMotionListener(mouseEvents);
 
         // Képek betöltése
-        LoadImages();
+        loadImages();
     }
 
-    private void LoadImages() {
+    private void loadImages() {
         ClassLoader classLoader = this.getClass().getClassLoader();
 
         java.net.URL frontUrl = classLoader.getResource("images/ship_front.png");
@@ -157,11 +157,11 @@ public class FieldPanel extends JPanel {
 
         super.paintComponent(originalGraphics);
 
-        Frame((Graphics2D) originalGraphics);
+        frame((Graphics2D) originalGraphics);
     }
 
 
-    private void Frame(Graphics2D g) {
+    private void frame(Graphics2D g) {
 
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -200,7 +200,7 @@ public class FieldPanel extends JPanel {
         drawElements(g, new Dimension(this.getWidth(), this.getHeight()));
 
         // Játéklogika frissítése
-        game.Update();
+        game.update();
 
         // Reset
         firstFrame = false;
@@ -240,8 +240,6 @@ public class FieldPanel extends JPanel {
 
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
-
-
 
         // Boards
         Rectangle2D workingArea = new Rectangle2D.Double(0, padding, panelSize.width, panelSize.height - padding);

@@ -35,7 +35,7 @@ public class MainWindow {
         window.newGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                window.game.Start();
+                window.game.start();
             }
         });
 
