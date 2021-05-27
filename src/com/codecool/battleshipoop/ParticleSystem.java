@@ -27,27 +27,36 @@ public class ParticleSystem {
     public Point2D defaultPosition = new Point2D.Double(0, 0);
     public int defaultImageIndex = 0;
 
+    private boolean preheating = false;
     private boolean repeating = false;
+
+    // TODO: megálljon X másodperc után
     private float duration = 5; // másodperc
+    private float lifetime = 0;
 
     public float scale = 1;
 
-    public ParticleSystem(ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
+    public ParticleSystem(ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preheating)
     {
         this.duration = duration;
         this.repeating = repeating;
+        this.preheating = preheating;
         this.images = images;
 
         particles = new Particle[particleCount];
 
         for (int i=0; i<particleCount; i++)
         {
-            particles[i] = new Particle((float)i / (float)particleCount, defaultOpacity, defaultRotation, defaultSize, defaultPosition, defaultImageIndex, i == 0 || preHeating);
+            particles[i] = new Particle((float)i / (float)particleCount, defaultOpacity, defaultRotation, defaultSize, defaultPosition, defaultImageIndex, i == 0 || preheating);
         }
 
         reorderParticles();
     }
 
+    public void draw(Graphics2D graphics, Point2D point)
+    {
+        draw(graphics, Math.round(point.getX()), Math.round(point.getY()));
+    }
     public void draw(Graphics2D graphics, double x, double y)
     {
         draw(graphics, Math.round(x), Math.round(y));
@@ -63,7 +72,6 @@ public class ParticleSystem {
         {
             images[i] = this.images[i].getImage();
         }
-        //this.image.getImage();
 
         for (int i=0; i<particles.length; i++)
         {
@@ -195,13 +203,23 @@ public class ParticleSystem {
 
     public void frame()
     {
+        if (lifetime > duration && !repeating)
+            return;
+
+        lifetime += frameStep();
+
         boolean reorderZ = false;
 
         for (int i=0; i<particles.length; i++) {
             if (particles[i].progress >= 1) {
                 particles[i].progress -= 1;
-                particles[i].enabled = true;
-                reorderZ = true;
+
+                if (lifetime < duration || repeating) {
+                    particles[i].enabled = true;
+                    reorderZ = true;
+                }
+                else
+                    particles[i].enabled = false;
             }
 
             // advance progress
@@ -210,6 +228,20 @@ public class ParticleSystem {
 
         if (reorderZ)
             reorderParticles();
+    }
+
+
+    public void restart()
+    {
+        lifetime = 0f;
+
+        for (int i=0; i<particles.length;i++)
+        {
+            particles[i].progress = (float)i / (float)particles.length;
+            particles[i].enabled = i == 0 || preheating;
+        }
+
+        reorderParticles();
     }
 
 
