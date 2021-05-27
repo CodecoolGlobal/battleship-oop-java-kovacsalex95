@@ -48,6 +48,10 @@ public class ParticleSystem {
         reorderParticles();
     }
 
+    public void draw(Graphics2D graphics, double x, double y)
+    {
+        draw(graphics, Math.round(x), Math.round(y));
+    }
     public void draw(Graphics2D graphics, float x, float y)
     {
         draw(graphics, Math.round(x), Math.round(y));
