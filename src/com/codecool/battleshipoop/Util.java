@@ -52,39 +52,6 @@ public class Util {
         return new Point2D.Double(directionX, directionY);
     }
 
-    public static Point2D[] getPlacementPoints(Point2D startPoint, Point2D endPoint, int pointCount, int boardSize) {
-
-        Point2D[] points = new Point2D[pointCount];
-        Point2D direction = Util.pointDirection(startPoint, endPoint);
-        if (direction == null)
-            return null;
-
-        for (int i = 0; i < pointCount; i++) {
-            points[i] = new Point2D.Double(startPoint.getX() + i * direction.getX(), startPoint.getY() + i * direction.getY());
-
-            if (points[i].getX() < 0 || points[i].getY() < 0 || points[i].getX() >= boardSize || points[i].getY() >= boardSize)
-                return null;
-        }
-
-        return points;
-    }
-
-    public static float getPlacementAngle(Point2D startPoint, Point2D endPoint)
-    {
-        Point2D direction = Util.pointDirection(startPoint, endPoint);
-        if (direction == null)
-            return 0;
-
-        if (direction.equals(new Point2D.Double(-1, 0)))
-            return 0;
-        if (direction.equals(new Point2D.Double(1, 0)))
-            return 180;
-        if (direction.equals(new Point2D.Double(0, -1)))
-            return 90;
-
-        return 270;
-    }
-
     public static int random(int from, int to)
     {
         Random r = new Random();
@@ -93,7 +60,7 @@ public class Util {
         return r.nextInt(high-low) + low;
     }
 
-    public static int elapsedMiliseconds(Timestamp currentTime, Timestamp oldTime)
+    public static int elapsedMilliseconds(Timestamp currentTime, Timestamp oldTime)
     {
         long milliseconds1 = oldTime.getTime();
         long milliseconds2 = currentTime.getTime();
