@@ -51,6 +51,7 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // TODO: [BUTTON] Credits
+                window.fieldPanel.creditsMode = !window.fieldPanel.creditsMode;
             }
         });
 
