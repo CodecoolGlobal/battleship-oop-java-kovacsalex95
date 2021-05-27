@@ -68,4 +68,9 @@ public class Util {
         return Math.round(milliseconds2 - milliseconds1);
     }
 
+    public static float lerp(float a, float b, float f)
+    {
+        return a + f * (b - a);
+    }
+
 }
