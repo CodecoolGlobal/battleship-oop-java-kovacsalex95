@@ -33,6 +33,8 @@ public class FieldPanel extends JPanel {
 
     private ImageIcon explosionIcon;
 
+    private ImageIcon[] explosionImages;
+
     private ImageIcon oceanImage;
 
     private ImageIcon logoImage;
@@ -145,6 +147,15 @@ public class FieldPanel extends JPanel {
         oceanImage = new ImageIcon(oceanUrl);
 
         logoImage = new ImageIcon(logoUrl);
+
+        int expImageCount = 20;
+        explosionImages = new ImageIcon[expImageCount];
+
+        for (int i=0; i<expImageCount; i++)
+        {
+            java.net.URL expUrl = classLoader.getResource("images/explosion/explosion-" + ((Integer)(i+1)) + ".png");
+            explosionImages[i] = new ImageIcon(expUrl);
+        }
     }
 
     public void clockTick() {
@@ -159,6 +170,9 @@ public class FieldPanel extends JPanel {
 
         frame((Graphics2D) originalGraphics);
     }
+
+
+    ParticleSystem particleTest = null;
 
 
     private void frame(Graphics2D g) {
@@ -187,8 +201,52 @@ public class FieldPanel extends JPanel {
 
         // game not started yet
         if (game.gameState == GameState.NOT_STARTED) {
-            float logoSize = Math.min(this.getWidth(), this.getHeight());
-            g.drawImage(logoImage.getImage(), (int)(this.getWidth() - logoSize) / 2, (int)(this.getHeight() - logoSize) / 2, (int)logoSize, (int)logoSize, null);
+            if (particleTest == null)
+            {
+                particleTest = new ParticleSystem(explosionImages, 10, 5, true, false);
+
+                particleTest.autoIndexKeyFrames();
+
+                particleTest.zOrder = ParticleZOrder.FIRST_ON_TOP;
+
+                particleTest.defaultOpacity = 1f;
+                particleTest.defaultRotation = 0;
+                particleTest.defaultSize = new Dimension(100, 100);
+                particleTest.defaultPosition = new Point2D.Double(0, 0);
+                particleTest.defaultImageIndex = 0;
+
+                particleTest.addPositionKeyFrame(0f, 0, 0);
+                particleTest.addPositionKeyFrame(0.2f, -5, -20);
+                particleTest.addPositionKeyFrame(0.4f, 10, -70);
+                particleTest.addPositionKeyFrame(0.6f, -15, -100);
+                particleTest.addPositionKeyFrame(0.8f, 0, -120);
+                particleTest.addPositionKeyFrame(1f, 15, -140);
+
+                particleTest.addOpacityKeyFrame(0f, 0f);
+                particleTest.addOpacityKeyFrame(0.2f, 1f);
+                particleTest.addOpacityKeyFrame(0.7f, 0.2f);
+                particleTest.addOpacityKeyFrame(1f, 0f);
+
+                particleTest.addRotationKeyFrame(0f, 0);
+                particleTest.addRotationKeyFrame(0.5f, 180f);
+                particleTest.addRotationKeyFrame(1f, 360f);
+
+                particleTest.addSizeKeyFrame(0, 110, 100);
+                particleTest.addSizeKeyFrame(0.2f, 130, 130);
+                particleTest.addSizeKeyFrame(0.6f, 160, 160);
+                particleTest.addSizeKeyFrame(1f, 120, 120);
+            }
+
+            particleTest.frame();
+
+            particleTest.draw(g, this.getWidth() / 2f, this.getHeight() / 2f);
+            particleTest.draw(g, this.getWidth() / 4f, this.getHeight() / 2f);
+            particleTest.draw(g, this.getWidth() / 4f * 3f, this.getHeight() / 2f);
+
+            if (false) {
+                float logoSize = Math.min(this.getWidth(), this.getHeight());
+                g.drawImage(logoImage.getImage(), (int) (this.getWidth() - logoSize) / 2, (int) (this.getHeight() - logoSize) / 2, (int) logoSize, (int) logoSize, null);
+            }
             return;
         }
 
