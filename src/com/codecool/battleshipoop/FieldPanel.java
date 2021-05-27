@@ -231,7 +231,7 @@ public class FieldPanel extends JPanel {
                 particleTest.addRotationKeyFrame(0.5f, 180f);
                 particleTest.addRotationKeyFrame(1f, 360f);
 
-                particleTest.addSizeKeyFrame(0, 110, 100);
+                particleTest.addSizeKeyFrame(0, 70, 70);
                 particleTest.addSizeKeyFrame(0.2f, 130, 130);
                 particleTest.addSizeKeyFrame(0.6f, 160, 160);
                 particleTest.addSizeKeyFrame(1f, 120, 120);
@@ -239,8 +239,13 @@ public class FieldPanel extends JPanel {
 
             particleTest.frame();
 
+            particleTest.scale = 2;
             particleTest.draw(g, this.getWidth() / 2f, this.getHeight() / 2f);
+
+            particleTest.scale = 1;
             particleTest.draw(g, this.getWidth() / 4f, this.getHeight() / 2f);
+
+            particleTest.scale = 3;
             particleTest.draw(g, this.getWidth() / 4f * 3f, this.getHeight() / 2f);
 
             if (false) {
