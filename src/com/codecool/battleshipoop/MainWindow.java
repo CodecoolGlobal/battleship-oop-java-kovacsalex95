@@ -50,7 +50,7 @@ public class MainWindow {
         window.creditsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO: [BUTTON] Credits
+                window.fieldPanel.creditsRows = null;
                 window.fieldPanel.creditsMode = !window.fieldPanel.creditsMode;
             }
         });
