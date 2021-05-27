@@ -264,7 +264,7 @@ public class FieldPanel extends JPanel {
             int winner = (game.player == 0 ? 1 : 0) + 1;
             String winnerText = "The winner is Player " + ((Integer) winner) + "!";
 
-            drawCenteredLabel(g, winnerText, boardsRectangle, Color.black, Util.rgbAColor(255, 255, 255, 0.5f));
+            drawCenteredLabel(g, winnerText, boardsRectangle, Color.black, Util.rgbAColor(255, 255, 255, 0.2f));
         }
         else if (game.gameState == GameState.PREPARE_TO_ATTACK) {
             String prepareText = "Player " + ((Integer) (game.player + 1)) + " prepare to attack";
@@ -470,7 +470,7 @@ public class FieldPanel extends JPanel {
         AffineTransform backup = Util.rotateGraphics(g, ship.angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
 
         // Kép rajzolás
-        g.drawImage(partShadowIcon, (int)Math.round(partShadowRectangle.getX()), (int)Math.round(partShadowRectangle.getY()), (int)Math.round(partShadowRectangle.getWidth()), (int)Math.round(partShadowRectangle.getHeight()), null);
+        g.drawImage(partShadowIcon, (int)Math.ceil(partShadowRectangle.getX()), (int)Math.ceil(partShadowRectangle.getY()), (int)Math.floor(partShadowRectangle.getWidth()), (int)Math.floor(partShadowRectangle.getHeight()), null);
         g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
 
         // Grafika forgatás reset
