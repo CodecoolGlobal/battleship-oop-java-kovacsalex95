@@ -384,8 +384,15 @@ public class FieldPanel extends JPanel {
         }
 
         // Találatok
-        if (game.gameState == GameState.ATTACK && boardIndex != game.player)
+        if (game.gameState == GameState.ATTACK && boardIndex != game.player) {
+
+            Rectangle2D oldClip = g.getClipBounds();
+            g.setClip(boardRectangle[boardIndex]);
+
             drawAttackPoints(g, boardIndex);
+
+            g.setClip(oldClip);
+        }
     }
 
 
