@@ -19,6 +19,8 @@ public class FieldPanel extends JPanel {
 
     private boolean firstFrame = true;
 
+    public boolean creditsMode = false;
+
     private ImageIcon shipFront;
     private ImageIcon shipMiddle;
     private ImageIcon shipRear;
@@ -200,6 +202,11 @@ public class FieldPanel extends JPanel {
         Rectangle2D workingArea = new Rectangle2D.Double(0, padding, panelSize.width, panelSize.height - padding);
 
 
+        if (creditsMode) {
+            drawCredits(g, workingArea);
+            return;
+        }
+
         float fullWidth = (int)workingArea.getWidth() - padding * 2;
         float fullHeight = (int)workingArea.getHeight() - padding * 2;
 
@@ -213,6 +220,26 @@ public class FieldPanel extends JPanel {
 
         Rectangle2D boardsRectangle = new Rectangle2D.Double(workingArea.getX() + (workingArea.getWidth() - boardsWidth) / 2, workingArea.getY() + (workingArea.getHeight() - boardsHeight) / 2, boardsWidth, boardsHeight);
         drawBoards(g, boardsRectangle);
+
+        if (game.gameState == GameState.END) {
+            int winner = (game.player == 0 ? 1 : 0) + 1;
+            String winnerText = "The winner is Player " + ((Integer) winner) + "!";
+            int winnerTextWidth = g.getFontMetrics().stringWidth(winnerText);
+
+            g.setPaint(Util.rgbAColor(255, 255, 255, 0.5f));
+            g.fill(boardsRectangle);
+            g.setPaint(Color.black);
+            g.drawString(winnerText, (int)boardsRectangle.getX() + (int)(boardsRectangle.getWidth() / 2) - winnerTextWidth / 2, (int)boardsRectangle.getY() + (int)(boardsRectangle.getHeight() / 2));
+        }
+        else if (game.gameState == GameState.PREPARE_TO_ATTACK) {
+            String prepareText = "Player " + ((Integer) (game.player + 1)) + " prepare to attack";
+            int prepareTextWidth = g.getFontMetrics().stringWidth(prepareText);
+
+            g.setPaint(Util.rgbAColor(255, 255, 255, 0.5f));
+            g.fill(boardsRectangle);
+            g.setPaint(Color.black);
+            g.drawString(prepareText, (int)boardsRectangle.getX() + (int)(boardsRectangle.getWidth() / 2) - prepareTextWidth / 2, (int)boardsRectangle.getY() + (int)(boardsRectangle.getHeight() / 2));
+        }
 
         g.setTransform(backup);
     }
@@ -258,6 +285,9 @@ public class FieldPanel extends JPanel {
             return;
         }
 
+        if (game.gameState == GameState.PREPARE_TO_ATTACK) {
+            return;
+        }
 
         boolean placementPreviewActive = game.gameState == GameState.PLACEMENT && boardIndex == game.player && game.shipPlacementPoint != null;
 
@@ -332,7 +362,7 @@ public class FieldPanel extends JPanel {
         if (boardHighlight == null || boardHighlight[boardIndex] == null) return;
 
 
-        Point2D[] placementPoints = Util.getPlacementPoints(game.shipPlacementPoint, boardHighlight[boardIndex], shipSize, game.boardSize);
+        Point2D[] placementPoints = Game.getPlacementPoints(game.shipPlacementPoint, boardHighlight[boardIndex], shipSize, game.boardSize, game.playerShips[boardIndex]);
         if (placementPoints == null)
             return;
 
@@ -409,6 +439,10 @@ public class FieldPanel extends JPanel {
         g.fill(highlightRectangle);
     }
 
+
+    private void drawCredits(Graphics2D g, Rectangle2D rectangle) {
+
+    }
 }
 
 
