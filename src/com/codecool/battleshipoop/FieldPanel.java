@@ -26,6 +26,11 @@ public class FieldPanel extends JPanel {
     private ImageIcon shipRear;
     private ImageIcon shipSmall;
 
+    private ImageIcon shipShadowFront;
+    private ImageIcon shipShadowMiddle;
+    private ImageIcon shipShadowRear;
+    private ImageIcon shipShadowSmall;
+
     private ImageIcon explosionIcon;
 
     private ImageIcon oceanImage;
@@ -55,6 +60,19 @@ public class FieldPanel extends JPanel {
             return shipRear;
         if (part == ShipPart.SMALL)
             return shipSmall;
+
+        return null;
+    }
+
+    public ImageIcon shipPartShadowIcon(ShipPart part) {
+        if (part == ShipPart.FRONT)
+            return shipShadowFront;
+        if (part == ShipPart.MIDDLE)
+            return shipShadowMiddle;
+        if (part == ShipPart.REAR)
+            return shipShadowRear;
+        if (part == ShipPart.SMALL)
+            return shipShadowSmall;
 
         return null;
     }
@@ -100,9 +118,14 @@ public class FieldPanel extends JPanel {
         java.net.URL rearUrl = classLoader.getResource("images/ship_rear.png");
         java.net.URL smallUrl = classLoader.getResource("images/ship_small.png");
 
+        java.net.URL frontShadowUrl = classLoader.getResource("images/ship_shadow_front.png");
+        java.net.URL middleShadowUrl = classLoader.getResource("images/ship_shadow_middle.png");
+        java.net.URL rearShadowUrl = classLoader.getResource("images/ship_shadow_rear.png");
+        java.net.URL smallShadowUrl = classLoader.getResource("images/ship_shadow_small.png");
+
         java.net.URL explosionUrl = classLoader.getResource("images/explosion.png");
 
-        java.net.URL oceanUrl = classLoader.getResource("images/ocean.jpg");
+        java.net.URL oceanUrl = classLoader.getResource("images/ocean.gif");
 
         java.net.URL logoUrl = classLoader.getResource("images/logo.png");
 
@@ -110,6 +133,12 @@ public class FieldPanel extends JPanel {
         shipMiddle = new ImageIcon(middleUrl);
         shipRear = new ImageIcon(rearUrl);
         shipSmall = new ImageIcon(smallUrl);
+
+
+        shipShadowFront = new ImageIcon(frontShadowUrl);
+        shipShadowMiddle = new ImageIcon(middleShadowUrl);
+        shipShadowRear = new ImageIcon(rearShadowUrl);
+        shipShadowSmall = new ImageIcon(smallShadowUrl);
 
         explosionIcon = new ImageIcon(explosionUrl);
 
@@ -134,6 +163,10 @@ public class FieldPanel extends JPanel {
 
     private void Frame(Graphics2D g) {
 
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
         // Madness = Rotate boards
         if (madness) {
             madnessAmount += 5;
@@ -143,10 +176,17 @@ public class FieldPanel extends JPanel {
 
         explosionRotation++;
 
+        // Rotate boards
+        AffineTransform backup = g.getTransform();
+        if (madness) Util.rotateGraphics(g, madnessAmount, (float)this.getWidth() / 2, (float)this.getHeight() / 2);
+
+        if (creditsMode) {
+            drawCredits(g, new Rectangle2D.Double(0, -padding * 2, this.getWidth(), this.getHeight() + padding * 4));
+            return;
+        }
+
         // game not started yet
         if (game.gameState == GameState.NOT_STARTED) {
-            //g.drawString("Press NEW GAME to START", this.getWidth() / 2 - 110, this.getHeight() / 2);
-
             float logoSize = Math.min(this.getWidth(), this.getHeight());
             g.drawImage(logoImage.getImage(), (int)(this.getWidth() - logoSize) / 2, (int)(this.getHeight() - logoSize) / 2, (int)logoSize, (int)logoSize, null);
             return;
@@ -165,6 +205,8 @@ public class FieldPanel extends JPanel {
         // Reset
         firstFrame = false;
         mouseEvents.reset();
+
+        g.setTransform(backup);
     }
 
 
@@ -176,9 +218,15 @@ public class FieldPanel extends JPanel {
             return;
         }
 
+        if (boardRectangle == null)
+            return;
+
         // egér a board 1-en
         for (int boardIndex = 0; boardIndex < boardRectangle.length; boardIndex++)
         {
+            if (boardRectangle[boardIndex] == null)
+                continue;
+
             if (boardRectangle[boardIndex].contains((mouseEvents.mousePosition)))
             {
                 Point2D mouseInBoard = new Point2D.Double(mouseEvents.mousePosition.getX() - boardRectangle[boardIndex].getX(), mouseEvents.mousePosition.getY() - boardRectangle[boardIndex].getY());
@@ -193,19 +241,10 @@ public class FieldPanel extends JPanel {
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
 
-        // Rotate boards
-        AffineTransform backup = g.getTransform();
-        if (madness) Util.rotateGraphics(g, madnessAmount, (float)panelSize.width / 2, (float)panelSize.height / 2);
 
 
         // Boards
         Rectangle2D workingArea = new Rectangle2D.Double(0, padding, panelSize.width, panelSize.height - padding);
-
-
-        if (creditsMode) {
-            drawCredits(g, workingArea);
-            return;
-        }
 
         float fullWidth = (int)workingArea.getWidth() - padding * 2;
         float fullHeight = (int)workingArea.getHeight() - padding * 2;
@@ -224,24 +263,14 @@ public class FieldPanel extends JPanel {
         if (game.gameState == GameState.END) {
             int winner = (game.player == 0 ? 1 : 0) + 1;
             String winnerText = "The winner is Player " + ((Integer) winner) + "!";
-            int winnerTextWidth = g.getFontMetrics().stringWidth(winnerText);
 
-            g.setPaint(Util.rgbAColor(255, 255, 255, 0.5f));
-            g.fill(boardsRectangle);
-            g.setPaint(Color.black);
-            g.drawString(winnerText, (int)boardsRectangle.getX() + (int)(boardsRectangle.getWidth() / 2) - winnerTextWidth / 2, (int)boardsRectangle.getY() + (int)(boardsRectangle.getHeight() / 2));
+            drawCenteredLabel(g, winnerText, boardsRectangle, Color.black, Util.rgbAColor(255, 255, 255, 0.5f));
         }
         else if (game.gameState == GameState.PREPARE_TO_ATTACK) {
             String prepareText = "Player " + ((Integer) (game.player + 1)) + " prepare to attack";
-            int prepareTextWidth = g.getFontMetrics().stringWidth(prepareText);
 
-            g.setPaint(Util.rgbAColor(255, 255, 255, 0.5f));
-            g.fill(boardsRectangle);
-            g.setPaint(Color.black);
-            g.drawString(prepareText, (int)boardsRectangle.getX() + (int)(boardsRectangle.getWidth() / 2) - prepareTextWidth / 2, (int)boardsRectangle.getY() + (int)(boardsRectangle.getHeight() / 2));
+            drawCenteredLabel(g, prepareText, boardsRectangle, Color.black, Util.rgbAColor(255, 255, 255, 0.5f));
         }
-
-        g.setTransform(backup);
     }
 
 
@@ -261,10 +290,8 @@ public class FieldPanel extends JPanel {
 
         // Player név szöveg
         String playerText = "Player " + ((Integer)(boardIndex + 1));
-        int playerTextWidth = g.getFontMetrics().stringWidth(playerText);
 
-        g.setPaint(playerColor[boardIndex].darker());
-        g.drawString(playerText, (int)boardRectangle[boardIndex].getX() + (int)(boardRectangle[boardIndex].getWidth() / 2) - (int)((float)playerTextWidth / 2f), (int)boardRectangle[boardIndex].getY() - padding / 2);
+        drawCenteredLabel(g, playerText, new Rectangle2D.Double(boardRectangle[boardIndex].getX(), boardRectangle[boardIndex].getY() - padding, boardRectangle[boardIndex].getWidth(), padding), playerColor[boardIndex].darker());
 
         // Háttér
         g.drawImage(oceanImage.getImage(), (int)Math.floor(boardRectangle[boardIndex].getX()), (int)Math.floor(boardRectangle[boardIndex].getY()), (int)Math.ceil(boardRectangle[boardIndex].getWidth()), (int)Math.ceil(boardRectangle[boardIndex].getHeight()), null);
@@ -272,14 +299,9 @@ public class FieldPanel extends JPanel {
 
         if (game.frozeState == 2) {
             if (boardIndex != game.player) {
-                g.setPaint(Util.rgbAColor(255, 255, 255, 0.6f));
-                g.fill(boardRectangle[boardIndex]);
-
                 String prepareText = "Player " + ((Integer) (boardIndex + 1)) + ": prepare to attack!";
-                int prepareTextWidth = g.getFontMetrics().stringWidth(prepareText);
 
-                g.setPaint(Color.black);
-                g.drawString(prepareText, (int)boardRectangle[boardIndex].getX() + (int)(boardRectangle[boardIndex].getWidth() / 2) - prepareTextWidth / 2, (int)boardRectangle[boardIndex].getY() + (int)(boardRectangle[boardIndex].getHeight() / 2));
+                drawCenteredLabel(g, prepareText, boardRectangle[boardIndex], Color.black, Util.rgbAColor(255, 255, 255, 0.5f));
             }
 
             return;
@@ -307,9 +329,14 @@ public class FieldPanel extends JPanel {
             if (game.playerShips == null || game.playerShips[boardIndex] == null)
                 return;
 
+            Rectangle2D oldClip = g.getClipBounds();
+            g.setClip(boardRectangle[boardIndex]);
+
             for (int i = 0; i < game.playerShips[boardIndex].length; i++) {
                 drawShip(g, boardIndex, game.playerShips[boardIndex][i]);
             }
+
+            g.setClip(oldClip);
         }
 
         // Találatok
@@ -341,8 +368,11 @@ public class FieldPanel extends JPanel {
 
             Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * hits[i].getX(), boardRectangle[boardIndex].getY() + cellSize * hits[i].getY(), cellSize, cellSize);
 
-            if (shipHit)
-                g.drawImage(explosionIcon.getImage(), (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
+            if (shipHit) {
+                AffineTransform backup = Util.rotateGraphics(g, explosionRotation, (float)partRectangle.getX() + (float)partRectangle.getWidth() / 2, (float)partRectangle.getY() + (float)partRectangle.getHeight() / 2);
+                g.drawImage(explosionIcon.getImage(), (int) Math.floor(partRectangle.getX()), (int) Math.floor(partRectangle.getY()), (int) Math.ceil(partRectangle.getWidth()), (int) Math.ceil(partRectangle.getHeight()), null);
+                g.setTransform(backup);
+            }
             else {
                 g.setPaint(Util.rgbAColor(0, 0, 0, 0.6f));
                 g.fill(partRectangle);
@@ -408,16 +438,39 @@ public class FieldPanel extends JPanel {
 
     private void drawShipPart(Graphics2D g, int boardIndex, Ship ship, ShipPiece shipPiece) {
 
+        Point2D shipOffset = ship.offset(Util.lerp(0.4f, 0.1f, (ship.shipPieces.length - 1) / (game.SHIP_COUNT - 1)));
+
+        float maxOffset = (float)boardRectangle[boardIndex].getHeight() * 0.01f;
+
         // Rectangle számolás
-        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX(), boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY(), cellSize, cellSize);
+        Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX() + shipOffset.getX() * maxOffset, boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY() + shipOffset.getY() * maxOffset, cellSize, cellSize);
+        Rectangle2D partShadowPostRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX() + shipOffset.getX() * maxOffset, boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY() + maxOffset, cellSize, cellSize);
+
+        float shadowRatio = Math.abs((float)partShadowPostRectangle.getY() - (float)partRectangle.getY()) / maxOffset;
+
+        float partShadowSizePlus = Util.lerp(cellSize / 3, cellSize / 12, 1 - shadowRatio);
+
+        partShadowPostRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX() + shipOffset.getX() * maxOffset, boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY() - maxOffset * 1.5f, cellSize, cellSize);
+
+        Rectangle2D partShadowRectangle = new Rectangle2D.Double(partShadowPostRectangle.getX() - partShadowSizePlus / 2, partShadowPostRectangle.getY() - partShadowSizePlus / 2, partShadowPostRectangle.getWidth() + partShadowSizePlus, partShadowPostRectangle.getHeight() + partShadowSizePlus);
+        if (ship.shipPieces.length > 1) {
+            if (shipPiece.part == ShipPart.FRONT)
+                partShadowRectangle = new Rectangle2D.Double(partShadowPostRectangle.getX() - partShadowSizePlus / 2, partShadowPostRectangle.getY() - partShadowSizePlus / 2, partShadowPostRectangle.getWidth() + partShadowSizePlus / 2, partShadowPostRectangle.getHeight() + partShadowSizePlus);
+            else if (shipPiece.part == ShipPart.MIDDLE)
+                partShadowRectangle = new Rectangle2D.Double(partShadowPostRectangle.getX(), partShadowPostRectangle.getY() - partShadowSizePlus / 2, partShadowPostRectangle.getWidth(), partShadowPostRectangle.getHeight() + partShadowSizePlus);
+            else if (shipPiece.part == ShipPart.REAR)
+                partShadowRectangle = new Rectangle2D.Double(partShadowPostRectangle.getX(), partShadowPostRectangle.getY() - partShadowSizePlus / 2, partShadowPostRectangle.getWidth() + partShadowSizePlus / 2, partShadowPostRectangle.getHeight() + partShadowSizePlus);
+        }
 
         // Ikon bekérés
         Image partIcon = shipPartIcon(shipPiece.part).getImage();
+        Image partShadowIcon = shipPartShadowIcon(shipPiece.part).getImage();
 
         // Grafika forgatása
         AffineTransform backup = Util.rotateGraphics(g, ship.angle, (float) partRectangle.getX() + cellSize / 2f, (float) partRectangle.getY() + cellSize / 2);
 
         // Kép rajzolás
+        g.drawImage(partShadowIcon, (int)Math.round(partShadowRectangle.getX()), (int)Math.round(partShadowRectangle.getY()), (int)Math.round(partShadowRectangle.getWidth()), (int)Math.round(partShadowRectangle.getHeight()), null);
         g.drawImage(partIcon, (int)Math.floor(partRectangle.getX()), (int)Math.floor(partRectangle.getY()), (int)Math.ceil(partRectangle.getWidth()), (int)Math.ceil(partRectangle.getHeight()), null);
 
         // Grafika forgatás reset
@@ -440,9 +493,87 @@ public class FieldPanel extends JPanel {
     }
 
 
+    private void drawCenteredLabel(Graphics2D g, String text, Rectangle2D rectangle, Color foreColor) {
+        drawCenteredLabel(g, text, rectangle, foreColor, null);
+    }
+
+    private void drawCenteredLabel(Graphics2D g, String text, Rectangle2D rectangle, Color foreColor, Color backColor) {
+        if (backColor != null)
+        {
+            g.setPaint(Util.rgbAColor(255, 255, 255, 0.6f));
+            g.fill(rectangle);
+        }
+
+        int textWidth = g.getFontMetrics().stringWidth(text);
+
+        g.setPaint(foreColor);
+        g.drawString(text, (int)rectangle.getX() + (int)(rectangle.getWidth() / 2) - textWidth / 2, (int)rectangle.getY() + (int)(rectangle.getHeight() / 2));
+    }
+
+
+    public CreditsRow[] creditsRows = null;
+
     private void drawCredits(Graphics2D g, Rectangle2D rectangle) {
 
+        int namesCount = 5;
+
+        if (creditsRows == null) {
+            creditsRows = new CreditsRow[namesCount];
+
+            float distance = 1f / namesCount;
+
+            for (int i=0; i<creditsRows.length; i++)
+            {
+                creditsRows[i] = new CreditsRow();
+                creditsRows[i].progress = i * distance;
+            }
+        }
+
+        for (int i=0; i<creditsRows.length; i++)
+        {
+            if (creditsRows[i].progress >= 1)
+                creditsRows[i] = new CreditsRow();
+
+            creditsRows[i].progress += 0.005f;
+
+            Rectangle2D creditsRectangle1 = new Rectangle2D.Double(rectangle.getX(), rectangle.getY() + rectangle.getHeight() * (1f - creditsRows[i].progress) - padding, rectangle.getWidth(), padding);
+            Rectangle2D creditsRectangle2 = new Rectangle2D.Double(rectangle.getX(), rectangle.getY() + rectangle.getHeight() * (1f - creditsRows[i].progress), rectangle.getWidth(), padding);
+
+            drawCenteredLabel(g, creditsRows[i].bullsht, creditsRectangle1, Color.black);
+            drawCenteredLabel(g, creditsRows[i].name, creditsRectangle2, Color.black);
+        }
     }
+
+    public static String[] creditsBullsht = new String[] {
+        "Talent director",
+        "Script director",
+        "Script editor",
+        "Recording engineer",
+        "Playtester",
+        "Special thank to",
+        "Producer",
+        "Executive assistant",
+        "Senior producer",
+        "Director, studio operations",
+        "Sound design",
+        "Art supervisor",
+        "Senior game director",
+        "Narrative director",
+        "Art director",
+        "Environment art director",
+        "Level design",
+        "Gameplay mechanics",
+        "QA department",
+        "Lead audio designer",
+        "Sound FX",
+        "Visual FX supervisor",
+        "Production assistant",
+        "Production coordinator",
+        "Special guest",
+        "Utility programmer",
+        "Presentation programmer",
+        "Music arrangements"
+    };
 }
 
 
