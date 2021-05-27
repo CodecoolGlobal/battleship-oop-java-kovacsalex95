@@ -2,7 +2,6 @@ package com.codecool.battleshipoop;
 
 import java.awt.geom.Point2D;
 import java.sql.Timestamp;
-import java.util.Arrays;
 
 
 enum GameState {
@@ -76,6 +75,8 @@ public class Game {
 
 
     private void UpdatePlacement() {
+
+        // TODO: froze time on finish
 
         if (playerShips == null)
             playerShips = new Ship[2][0];
@@ -215,16 +216,15 @@ public class Game {
         }
     }
 
-    private void FrozeGame()
-    {
+
+    private void FrozeGame() {
         frozeState = 1;
         frozeStartTime = new Timestamp(System.currentTimeMillis());
     }
 
 
     // MISC
-    public Ship[] addShip(Ship[] collection, Ship ship)
-    {
+    public Ship[] addShip(Ship[] collection, Ship ship) {
         Ship[] result = new Ship[collection.length + 1];
         for (int i=0; i < collection.length; i++)
             result[i] = collection[i];
@@ -232,8 +232,7 @@ public class Game {
         return result;
     }
 
-    public Ship[] removeShip(Ship[] collection)
-    {
+    public Ship[] removeShip(Ship[] collection) {
         if (collection.length == 0) return collection;
 
         Ship[] result = new Ship[collection.length - 1];
@@ -242,8 +241,7 @@ public class Game {
         return result;
     }
 
-    public Point2D[] addHit(Point2D[] collection, Point2D point)
-    {
+    public Point2D[] addHit(Point2D[] collection, Point2D point) {
         Point2D[] result = new Point2D[collection.length + 1];
         for (int i=0; i < collection.length; i++)
             result[i] = collection[i];
@@ -251,8 +249,7 @@ public class Game {
         return result;
     }
 
-    private boolean playerShipDestroyed(int player)
-    {
+    private boolean playerShipDestroyed(int player) {
         if (playerShips == null || playerShips[player] == null)
             return false;
 

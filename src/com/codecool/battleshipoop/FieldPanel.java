@@ -288,8 +288,7 @@ public class FieldPanel extends JPanel {
     }
 
 
-    private void drawAttackPoints(Graphics2D g, int boardIndex)
-    {
+    private void drawAttackPoints(Graphics2D g, int boardIndex) {
         Point2D[] hits = game.playerHits[boardIndex == 0 ? 1 : 0];
         Ship[] ships = game.playerShips[boardIndex];
 
@@ -343,6 +342,7 @@ public class FieldPanel extends JPanel {
         }
     }
 
+
     private void drawBoardHighlight(Graphics2D g, int boardIndex) {
 
         if (boardHighlight == null || boardHighlight[boardIndex] == null)
@@ -376,7 +376,7 @@ public class FieldPanel extends JPanel {
     }
 
 
-    private void drawShipPart(Graphics2D g, int boardIndex, Ship ship, ShipPiece shipPiece) {// Point2D cell, ShipPart part, float angle, boolean hit, float explosionAngleOffset) {
+    private void drawShipPart(Graphics2D g, int boardIndex, Ship ship, ShipPiece shipPiece) {
 
         // Rectangle számolás
         Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * shipPiece.position.getX(), boardRectangle[boardIndex].getY() + cellSize * shipPiece.position.getY(), cellSize, cellSize);
