@@ -95,6 +95,8 @@ public class Game {
             else {
                 player = 0;
                 gameState = GameState.PREPARE_TO_ATTACK;
+
+                orderPlayerShips();
             }
         }
 
@@ -208,6 +210,7 @@ public class Game {
             }
 
             playerHits[player] = addHit(playerHits[player], enemyHighlight);
+            orderPlayerHits();
 
             for (int i = 0; i < playerShips[player == 0 ? 1 : 0].length; i++) {
                 for (int j = 0; j < playerShips[player == 0 ? 1 : 0][i].shipPieces.length; j++) {
@@ -228,7 +231,7 @@ public class Game {
 
 
     // MISC
-    public Ship[] addShip(Ship[] collection, Ship ship) {
+    private Ship[] addShip(Ship[] collection, Ship ship) {
         Ship[] result = new Ship[collection.length + 1];
         for (int i = 0; i < collection.length; i++)
             result[i] = collection[i];
@@ -236,7 +239,7 @@ public class Game {
         return result;
     }
 
-    public Ship[] removeShip(Ship[] collection) {
+    private Ship[] removeShip(Ship[] collection) {
         if (collection.length == 0) return collection;
 
         Ship[] result = new Ship[collection.length - 1];
@@ -245,12 +248,87 @@ public class Game {
         return result;
     }
 
-    public Point2D[] addHit(Point2D[] collection, Point2D point) {
+    private void orderPlayerShips()
+    {
+        for (int i=0; i<playerShips.length;i++) {
+            for (int j = 0; j<playerShips[i].length; j++)
+            {
+                int iteration = 0;
+                int shipPartCount = playerShips[i][j].shipPieces.length;
+
+                while (iteration < shipPartCount - 1)
+                {
+                    int subIteration = 0;
+
+                    while (subIteration < shipPartCount - iteration - 1) {
+                        if (playerShips[i][j].shipPieces[subIteration].position.getY() > playerShips[i][j].shipPieces[subIteration + 1].position.getY()) {
+                            ShipPiece temp = playerShips[i][j].shipPieces[subIteration];
+                            playerShips[i][j].shipPieces[subIteration] = playerShips[i][j].shipPieces[subIteration + 1];
+                            playerShips[i][j].shipPieces[subIteration + 1] = temp;
+                        }
+
+                        subIteration++;
+                    }
+
+                    iteration++;
+                }
+            }
+
+
+            int iteration = 0;
+            int shipCount = playerShips[i].length;
+
+            while (iteration < shipCount - 1) {
+                int subIteration = 0;
+
+                while (subIteration < shipCount - iteration - 1) {
+                    if (playerShips[i][subIteration].shipPieces[playerShips[i][subIteration].shipPieces.length - 1].position.getY() > playerShips[i][subIteration + 1].shipPieces[playerShips[i][subIteration + 1].shipPieces.length - 1].position.getY()) {
+                        Ship temp = playerShips[i][subIteration];
+                        playerShips[i][subIteration] = playerShips[i][subIteration + 1];
+                        playerShips[i][subIteration + 1] = temp;
+                    }
+
+                    subIteration++;
+                }
+
+                iteration++;
+            }
+        }
+    }
+
+    private Point2D[] addHit(Point2D[] collection, Point2D point) {
         Point2D[] result = new Point2D[collection.length + 1];
         for (int i = 0; i < collection.length; i++)
             result[i] = collection[i];
         result[collection.length] = point;
         return result;
+    }
+
+    private void orderPlayerHits()
+    {
+        for (int i=0; i<playerHits.length; i++) {
+            int iteration = 0;
+            int hitCount = playerHits[i].length;
+
+            while (iteration < hitCount - 1)
+            {
+                int subIteration = 0;
+
+                while (subIteration < hitCount - iteration - 1)
+                {
+                    if (playerHits[i][subIteration].getY() > playerHits[i][subIteration + 1].getY())
+                    {
+                        Point2D temp = playerHits[i][subIteration];
+                        playerHits[i][subIteration] = playerHits[i][subIteration + 1];
+                        playerHits[i][subIteration + 1] = temp;
+                    }
+
+                    subIteration++;
+                }
+
+                iteration++;
+            }
+        }
     }
 
     private boolean playerShipDestroyed(int player) {
