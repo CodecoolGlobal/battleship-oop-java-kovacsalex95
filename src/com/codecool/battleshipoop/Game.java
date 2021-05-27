@@ -53,8 +53,10 @@ public class Game {
 
         shipPlacementPoint = null;
 
-        fieldPanel.creditsMode = false;
-        fieldPanel.madness = false;
+        if (fieldPanel != null) {
+            fieldPanel.creditsMode = false;
+            fieldPanel.madness = false;
+        }
     }
 
 
