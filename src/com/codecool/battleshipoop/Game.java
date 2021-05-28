@@ -208,6 +208,8 @@ public class Game {
                     return;
             }
 
+            fieldPanel.vibrate();
+
             playerHits[player] = addHit(playerHits[player], enemyHighlight);
             orderPlayerHits();
 

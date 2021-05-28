@@ -44,6 +44,26 @@ public class FieldPanel extends JPanel {
 
     private final float padding = 30;
 
+    private float vibrationProgress = 10;
+    private float vibrationRatio()
+    {
+        float vibrationDuration = 1f;
+        if (vibrationProgress > vibrationDuration)
+            return 0;
+        if (vibrationProgress < 0)
+            return 1;
+
+        return 1 - Math.max(0, Math.min(1,vibrationProgress / vibrationDuration));
+    }
+    public void vibrate()
+    {
+        vibrationProgress = 0;
+    }
+    private float frameStep()
+    {
+        return 1f / 50f;
+    }
+
     public final Color[] playerColor = new Color[]{
             Util.rgbColor(252, 150, 150),
             new Color(0.96f, 0.96f, 0.48f)
@@ -178,6 +198,8 @@ public class FieldPanel extends JPanel {
 
     private void frame(Graphics2D g) {
 
+        vibrationProgress += frameStep();
+
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -255,8 +277,15 @@ public class FieldPanel extends JPanel {
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
 
+        float randomX = Util.random(0, 60) - 60;
+        float randomY = Util.random(0, 60) - 60;
+
+        float vibrationRatio = vibrationRatio();
+        float vibrationX = randomX * vibrationRatio;
+        float vibrationY = randomY * vibrationRatio;
+
         // Boards
-        Rectangle2D workingArea = new Rectangle2D.Double(0, padding, panelSize.width, panelSize.height - padding);
+        Rectangle2D workingArea = new Rectangle2D.Double(0 + vibrationX, padding + vibrationY, panelSize.width, panelSize.height - padding);
 
         float fullWidth = (int)workingArea.getWidth() - padding * 2;
         float fullHeight = (int)workingArea.getHeight() - padding * 2;

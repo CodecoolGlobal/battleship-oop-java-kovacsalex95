@@ -30,7 +30,6 @@ public class ParticleSystem {
     private boolean preheating = false;
     private boolean repeating = false;
 
-    // TODO: megálljon X másodperc után
     private float duration = 5; // másodperc
     private float lifetime = 0;
 
