@@ -111,7 +111,7 @@ public class FieldPanel extends JPanel {
         loadImages();
 
         // Particle rendszerek
-        particleSystems = new ParticleSystemCollection();
+        particleSystems = new ParticleSystemCollection(this);
     }
 
     private void loadImages() {
@@ -374,34 +374,28 @@ public class FieldPanel extends JPanel {
 
         for (int i=0; i<hits.length; i++)
         {
-            int hitPartParticleSystemIndex = -1;
-            int hitPartShockwaveParticleSystemIndex = -1;
+            int[] particleSystemIndexes = null;
 
             for (int j = 0; j<ships.length; j++)
             {
                 for (int k = 0; k<ships[j].shipPieces.length; k++)
                 {
                     if (ships[j].shipPieces[k].position.equals(hits[i])) {
-                        hitPartParticleSystemIndex = ships[j].shipPieces[k].particleSystemIndex;
-                        hitPartShockwaveParticleSystemIndex = ships[j].shipPieces[k].shockwaveParticleSystemIndex;
+                        particleSystemIndexes = ships[j].shipPieces[k].particleSystems;
                         break;
                     }
                 }
-                if (hitPartParticleSystemIndex != -1 && hitPartShockwaveParticleSystemIndex != -1)
+                if (particleSystemIndexes != null)
                     break;
             }
 
             Rectangle2D partRectangle = new Rectangle2D.Double(boardRectangle[boardIndex].getX() + cellSize * hits[i].getX(), boardRectangle[boardIndex].getY() + cellSize * hits[i].getY(), cellSize, cellSize);
 
-            if (hitPartParticleSystemIndex != -1 || hitPartShockwaveParticleSystemIndex != -1) {
+            if (particleSystemIndexes != null) {
 
-                if (hitPartShockwaveParticleSystemIndex != -1) {
-                    particleSystems.getSystem(hitPartShockwaveParticleSystemIndex).scale = particleScale(boardIndex);
-                    particleSystems.queueParticleDraw(hitPartShockwaveParticleSystemIndex);
-                }
-                if (hitPartParticleSystemIndex != -1) {
-                    particleSystems.getSystem(hitPartParticleSystemIndex).scale = particleScale(boardIndex);
-                    particleSystems.queueParticleDraw(hitPartParticleSystemIndex);
+                for (int index=0; index<particleSystemIndexes.length;index++) {
+                    particleSystems.getSystem(particleSystemIndexes[index]).scale = particleScale(boardIndex);
+                    particleSystems.queueParticleDraw(particleSystemIndexes[index]);
                 }
             }
             else {
@@ -424,9 +418,9 @@ public class FieldPanel extends JPanel {
     }
 
 
-    public int addShockwaveParticle(Point2D point)
+    public int addShockwaveParticle(Point2D point, int boardIndex)
     {
-        int particleIndex = particleSystems.add(point, new ImageIcon[] { shockWaveImage }, 1, 1, false, false);
+        int particleIndex = particleSystems.add(point, boardIndex, new ImageIcon[] { shockWaveImage }, 1, 1, false, false);
 
         ParticleSystem shockwaveTest = particleSystems.getSystem(particleIndex);
 
@@ -442,9 +436,9 @@ public class FieldPanel extends JPanel {
     }
 
 
-    public int addFireParticle(Point2D point)
+    public int addFireParticle(Point2D point, int boardIndex)
     {
-        int particleIndex = particleSystems.add(point, explosionImages, 10, 5, true, false);
+        int particleIndex = particleSystems.add(point, boardIndex, explosionImages, 10, 5, true, false);
         ParticleSystem system = particleSystems.getSystem(particleIndex);
 
         system.autoIndexKeyFrames();
@@ -579,12 +573,11 @@ public class FieldPanel extends JPanel {
 
 
         if (shipPiece.hit) {
-            /*fireParticles.scale = particleScale(boardIndex);
-            fireParticles.draw(g, partRectangle.getX() + partRectangle.getWidth() / 2, partRectangle.getY() + partRectangle.getHeight() / 2);*/
-
-            if (shipPiece.particleSystemIndex != -1) {
-                particleSystems.getSystem(shipPiece.particleSystemIndex).scale = particleScale(boardIndex);
-                particleSystems.queueParticleDraw(shipPiece.particleSystemIndex);
+            if (shipPiece.particleSystems != null) {
+                for (int index=0; index<shipPiece.particleSystems.length;index++) {
+                    particleSystems.getSystem(shipPiece.particleSystems[index]).scale = particleScale(boardIndex);
+                    particleSystems.queueParticleDraw(shipPiece.particleSystems[index]);
+                }
             }
         }
     }
@@ -685,28 +678,33 @@ class ParticleSystemInstance
 {
     public ParticleSystem system;
     public Point2D position;
+    public int boardIndex;
 
-    public ParticleSystemInstance(ParticleSystem system, Point2D position)
+    public ParticleSystemInstance(ParticleSystem system, Point2D position, int boardIndex)
     {
         this.system = system;
         this.position = position;
+        this.boardIndex = boardIndex;
     }
-    public ParticleSystemInstance(ParticleSystem system, float x, float y)
+    public ParticleSystemInstance(ParticleSystem system, float x, float y, int boardIndex)
     {
         this.system = system;
         this.position = new Point2D.Double(x, y);
+        this.boardIndex = boardIndex;
     }
 }
 
 class ParticleSystemCollection extends ArrayList<ParticleSystemInstance> {
 
+    FieldPanel fieldPanel;
     Queue<Integer> drawOrder;
 
     public Rectangle2D clipRectangle = null;
 
-    public ParticleSystemCollection() {
+    public ParticleSystemCollection(FieldPanel fieldPanel) {
         super();
 
+        this.fieldPanel = fieldPanel;
         drawOrder = new LinkedList();
     }
 
@@ -734,31 +732,31 @@ class ParticleSystemCollection extends ArrayList<ParticleSystemInstance> {
 
             ParticleSystemInstance instance = get(particleIndex);
             instance.system.frame();
-            instance.system.draw(graphics, instance.position);
+            instance.system.draw(graphics, fieldPanel.cellToPixel(instance.position, instance.boardIndex));
         }
 
         if (clipRectangle != null)
             graphics.setClip(oldClip);
     }
 
-    public int add(float x, float y, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
+    public int add(float x, float y, int boardIndex, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
     {
-        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), x, y));
+        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), x, y, boardIndex));
         return super.size() - 1;
     }
-    public int add(Point2D position, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
+    public int add(Point2D position, int boardIndex, ImageIcon image, int particleCount, float duration, boolean repeating, boolean preHeating)
     {
-        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), position));
+        super.add(new ParticleSystemInstance(new ParticleSystem(new ImageIcon[] { image }, particleCount, duration, repeating, preHeating), position, boardIndex));
         return super.size() - 1;
     }
-    public int add(float x, float y, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
+    public int add(float x, float y, int boardIndex, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
     {
-        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), x, y));
+        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), x, y, boardIndex));
         return super.size() - 1;
     }
-    public int add(Point2D position, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
+    public int add(Point2D position, int boardIndex, ImageIcon[] images, int particleCount, float duration, boolean repeating, boolean preHeating)
     {
-        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), position));
+        super.add(new ParticleSystemInstance(new ParticleSystem(images, particleCount, duration, repeating, preHeating), position, boardIndex));
         return super.size() - 1;
     }
 

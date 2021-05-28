@@ -211,16 +211,15 @@ public class Game {
             playerHits[player] = addHit(playerHits[player], enemyHighlight);
             orderPlayerHits();
 
-            //fieldPanel.particleSystems.queueParticleDraw(fieldPanel.addShockwaveParticle(fieldPanel.cellToPixel(enemyHighlight, player)));
-
             for (int i = 0; i < playerShips[player == 0 ? 1 : 0].length; i++) {
                 for (int j = 0; j < playerShips[player == 0 ? 1 : 0][i].shipPieces.length; j++) {
                     if (playerShips[player == 0 ? 1 : 0][i].shipPieces[j].position.equals(enemyHighlight)) {
                         playerShips[player == 0 ? 1 : 0][i].shipPieces[j].hit = true;
 
-                        playerShips[player == 0 ? 1 : 0][i].shipPieces[j].particleSystemIndex = fieldPanel.addFireParticle(fieldPanel.cellToPixel(enemyHighlight, player == 0 ? 1 : 0));
-                        playerShips[player == 0 ? 1 : 0][i].shipPieces[j].shockwaveParticleSystemIndex = fieldPanel.addShockwaveParticle(fieldPanel.cellToPixel(enemyHighlight, player == 0 ? 1 : 0));
-                        // int shockwaveParticleIndex = fieldPanel.addShockwaveParticle(enemyHighlight);
+                        playerShips[player == 0 ? 1 : 0][i].shipPieces[j].particleSystems = new int[] {
+                            fieldPanel.addFireParticle(enemyHighlight, player == 0 ? 1 : 0),
+                            fieldPanel.addShockwaveParticle(enemyHighlight, player == 0 ? 1 : 0)
+                        };
                     }
                 }
             }
