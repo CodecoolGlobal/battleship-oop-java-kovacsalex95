@@ -277,8 +277,10 @@ public class FieldPanel extends JPanel {
     // RAJZOLÁS
     private void drawElements(Graphics2D g, Dimension panelSize) {
 
-        float randomX = Util.random(0, 60) - 60;
-        float randomY = Util.random(0, 60) - 60;
+        float vibrationSize = 60 * (this.getWidth() / 1200f);
+
+        float randomX = Util.random(0, (int)vibrationSize) - vibrationSize / 2;
+        float randomY = Util.random(0, (int)vibrationSize) - vibrationSize / 2;
 
         float vibrationRatio = vibrationRatio();
         float vibrationX = randomX * vibrationRatio;
